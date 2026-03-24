@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\Gender;
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -33,6 +35,12 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            'country' => fake()->country(),
+            'gender' => fake()->randomElement([Gender::Male->value, Gender::Female->value]),
+            'avatar' => null,
+            'status' => UserStatus::Pending->value,
+            'approved_by' => null,
+            'approved_at' => null,
         ];
     }
 

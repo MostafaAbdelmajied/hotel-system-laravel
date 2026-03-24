@@ -4,17 +4,23 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Enums\UserStatus;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
+    private const PENDING_APPROVAL_MESSAGE = 'Your account is pending approval. Please wait for an administrator to approve it.';
+
     /**
      * Register any application services.
      */
@@ -29,6 +35,7 @@ class FortifyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureActions();
+        $this->configureAuthentication();
         $this->configureViews();
         $this->configureRateLimiting();
     }
@@ -40,6 +47,32 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+    }
+
+    /**
+     * Configure authentication.
+     */
+    private function configureAuthentication(): void
+    {
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            $usernameField = Fortify::username();
+            $username = (string) $request->input($usernameField);
+            $password = (string) $request->input('password');
+
+            $user = User::query()->where($usernameField, $username)->first();
+
+            if (! $user || ! Hash::check($password, $user->password)) {
+                return null;
+            }
+
+            if ($user->hasRole('Client') && $user->status !== UserStatus::Approved) {
+                throw ValidationException::withMessages([
+                    $usernameField => self::PENDING_APPROVAL_MESSAGE,
+                ]);
+            }
+
+            return $user;
+        });
     }
 
     /**
@@ -66,7 +99,9 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::registerView(fn () => Inertia::render('auth/Register'));
+        Fortify::registerView(fn () => Inertia::render('auth/Register', [
+            'countries' => cachedCountries(),
+        ]));
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
 

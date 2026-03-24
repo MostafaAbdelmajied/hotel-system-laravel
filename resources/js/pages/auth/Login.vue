@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -18,6 +18,8 @@ defineProps<{
     canResetPassword: boolean;
     canRegister: boolean;
 }>();
+
+const page = usePage<{ errors?: { email?: string } }>();
 </script>
 
 <template>
@@ -32,6 +34,13 @@ defineProps<{
             class="mb-4 text-center text-sm font-medium text-green-600"
         >
             {{ status }}
+        </div>
+
+        <div
+            v-if="page.props.errors?.email"
+            class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+        >
+            {{ page.props.errors.email }}
         </div>
 
         <Form

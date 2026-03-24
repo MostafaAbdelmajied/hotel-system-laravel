@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
+use Spatie\Permission\Models\Role;
 
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
@@ -11,7 +13,46 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'status' => UserStatus::Approved,
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('dashboard', absolute: false));
+});
+
+test('pending users can not authenticate and see approval message', function () {
+    Role::findOrCreate('Client');
+
+    $user = User::factory()->create([
+        'status' => UserStatus::Pending,
+    ]);
+    $user->assignRole('Client');
+
+    $response = $this->from(route('login'))->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertGuest();
+    $response->assertRedirect(route('login'));
+    $response->assertSessionHasErrors([
+        'email' => 'Your account is pending approval. Please wait for an administrator to approve it.',
+    ]);
+});
+
+test('pending non-client users can authenticate', function () {
+    Role::findOrCreate('Admin');
+
+    $user = User::factory()->create([
+        'status' => UserStatus::Pending,
+    ]);
+    $user->assignRole('Admin');
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
@@ -30,7 +71,9 @@ test('users with two factor enabled are redirected to two factor challenge', fun
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'status' => UserStatus::Approved,
+    ]);
 
     $user->forceFill([
         'two_factor_secret' => encrypt('test-secret'),
@@ -49,7 +92,9 @@ test('users with two factor enabled are redirected to two factor challenge', fun
 });
 
 test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'status' => UserStatus::Approved,
+    ]);
 
     $this->post(route('login.store'), [
         'email' => $user->email,
@@ -60,7 +105,9 @@ test('users can not authenticate with invalid password', function () {
 });
 
 test('users can logout', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'status' => UserStatus::Approved,
+    ]);
 
     $response = $this->actingAs($user)->post(route('logout'));
 
@@ -69,7 +116,9 @@ test('users can logout', function () {
 });
 
 test('users are rate limited', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'status' => UserStatus::Approved,
+    ]);
 
     RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
 
@@ -79,4 +128,35 @@ test('users are rate limited', function () {
     ]);
 
     $response->assertTooManyRequests();
+});
+
+test('authenticated pending users are logged out from protected routes', function () {
+    Role::findOrCreate('Client');
+
+    $user = User::factory()->create([
+        'status' => UserStatus::Pending,
+    ]);
+    $user->assignRole('Client');
+
+    $response = $this->actingAs($user)->get(route('dashboard'));
+
+    $response->assertRedirect(route('login'));
+    $response->assertSessionHasErrors([
+        'email' => 'Your account is pending approval. Please wait for an administrator to approve it.',
+    ]);
+    $this->assertGuest();
+});
+
+test('authenticated pending non-client users can access protected routes', function () {
+    Role::findOrCreate('Admin');
+
+    $user = User::factory()->create([
+        'status' => UserStatus::Pending,
+    ]);
+    $user->assignRole('Admin');
+
+    $response = $this->actingAs($user)->get(route('dashboard'));
+
+    $response->assertOk();
+    $this->assertAuthenticatedAs($user);
 });
