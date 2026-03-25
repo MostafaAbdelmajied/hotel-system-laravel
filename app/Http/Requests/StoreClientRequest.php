@@ -23,7 +23,7 @@ class StoreClientRequest extends FormRequest
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'country' => ['required', 'string', Rule::in(cachedCountries())],
             'gender' => ['required', Rule::enum(Gender::class)],
-            'avatar' => ['sometimes', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 
