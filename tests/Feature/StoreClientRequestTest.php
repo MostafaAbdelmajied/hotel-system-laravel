@@ -98,3 +98,17 @@ test('it ignores current client id in unique email validation for updates', func
 
     expect($validator->fails())->toBeFalse();
 });
+
+test('it allows empty avatar value', function () {
+    $validator = storeClientRequestValidator([
+        'name' => 'Test User',
+        'email' => 'test2@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'country' => 'Egypt',
+        'gender' => 'male',
+        'avatar' => null,
+    ]);
+
+    expect($validator->fails())->toBeFalse();
+});

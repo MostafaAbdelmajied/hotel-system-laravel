@@ -11,6 +11,8 @@ export type User = {
 
 export type Auth = {
     user: User;
+    canViewPendingClients?: boolean;
+    canViewMyApprovedClients?: boolean;
 };
 
 export type TwoFactorConfigContent = {

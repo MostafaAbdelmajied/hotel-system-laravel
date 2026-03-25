@@ -34,7 +34,15 @@ const form = useForm<{
 });
 
 const submit = (): void => {
-    form.post(store().url, {
+    form.transform((data) => {
+        const payload = { ...data };
+
+        if (!payload.avatar) {
+            delete payload.avatar;
+        }
+
+        return payload;
+    }).post(store().url, {
         forceFormData: true,
         onSuccess: () => form.reset('password', 'password_confirmation', 'avatar'),
     });
