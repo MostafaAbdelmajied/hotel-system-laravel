@@ -11,6 +11,7 @@ export type User = {
 
 export type Auth = {
     user: User;
+    isAdmin?: boolean;
     canViewPendingClients?: boolean;
     canViewMyApprovedClients?: boolean;
 };

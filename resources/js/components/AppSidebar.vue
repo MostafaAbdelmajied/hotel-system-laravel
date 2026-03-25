@@ -39,7 +39,7 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (page.props.auth?.canViewMyApprovedClients) {
         items.push({
-            title: 'My Approved Clients',
+            title: page.props.auth?.isAdmin ? 'Approved Clients' : 'My Approved Clients',
             href: '/clients/my-approved',
             icon: UserCheck,
         });

@@ -42,6 +42,7 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $user,
+                'isAdmin' => $user?->hasRole('Admin') ?? false,
                 'canViewPendingClients' => $user?->hasAnyRole(['Admin', 'Manager', 'Receptionist']) ?? false,
                 'canViewMyApprovedClients' => $user?->hasAnyRole(['Admin', 'Manager', 'Receptionist']) ?? false,
             ],
