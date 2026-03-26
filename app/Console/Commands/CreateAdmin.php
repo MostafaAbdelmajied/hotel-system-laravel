@@ -31,7 +31,7 @@ class CreateAdmin extends Command
             }
             return;
         }
-        
+
         $user = \App\Models\User::create([
             'name' => $name,
             'email' => $email,
@@ -40,6 +40,7 @@ class CreateAdmin extends Command
         ]);
 
         if ($user) {
+            $user->assignRole('Admin');
             $this->info('Admin user created successfully!');
         } else {
             $this->error('Failed to create admin user.');
