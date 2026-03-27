@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserStatus;
 use App\Http\Requests\StoreManagerRequest;
+use App\Http\Requests\UpdateManagerRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -101,5 +104,43 @@ class ManagerController extends Controller
         $manager->update($payload);
 
         return back()->with('success', 'Manager updated successfully.');
+    }
+
+    public function destroy(Request $request, User $manager): RedirectResponse
+    {
+        abort_unless(
+            $request->user()?->hasRole('Admin') && $manager->hasRole('Manager'),
+            403
+        );
+
+        if ($manager->avatar !== null && $manager->avatar !== 'default.png') {
+            Storage::disk('public')->delete($manager->avatar);
+        }
+
+        $manager->delete();
+
+        return back()->with('success', 'Manager deleted successfully.');
+    }
+
+    private function storeAvatar(?UploadedFile $avatar): ?string
+    {
+        if ($avatar === null) {
+            return null;
+        }
+
+        return $avatar->store('avatars', 'public');
+    }
+
+    private function replaceAvatar(User $manager, ?UploadedFile $avatar): ?string
+    {
+        if ($avatar === null) {
+            return null;
+        }
+
+        if ($manager->avatar !== null && $manager->avatar !== 'default.png') {
+            Storage::disk('public')->delete($manager->avatar);
+        }
+
+        return $avatar->store('avatars', 'public');
     }
 }
