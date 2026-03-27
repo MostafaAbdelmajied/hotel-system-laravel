@@ -3,6 +3,7 @@
 use App\Http\Controllers\ClientApprovalController;
 use App\Http\Controllers\MyApprovedClientController;
 use App\Http\Controllers\PendingClientController;
+use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -16,5 +17,11 @@ Route::middleware(['auth', 'approved', 'verified'])->group(function () {
     Route::get('clients/my-approved', [MyApprovedClientController::class, 'index'])->name('clients.my-approved');
     Route::patch('clients/{client}/approve', [ClientApprovalController::class, 'update'])->name('clients.approve');
 });
-
+Route::middleware(['auth', 'approved', 'verified', 'role:Manager|Admin'])
+    ->prefix('manager')
+    ->name('manager.')
+    ->group(function () {
+        Route::resource('rooms', RoomController::class)
+            ->except(['create', 'edit', 'show']);
+    });
 require __DIR__.'/settings.php';
