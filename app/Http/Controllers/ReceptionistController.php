@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserStatus;
 use App\Http\Requests\StoreReceptionistRequest;
+use App\Http\Requests\UpdateReceptionistRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -82,5 +83,31 @@ class ReceptionistController extends Controller
         });
 
         return back()->with('success', 'Receptionist created successfully.');
+    }
+
+    public function update(UpdateReceptionistRequest $request, User $receptionist): RedirectResponse
+    {
+        abort_unless(
+            $request->user()?->hasRole('Admin') && $receptionist->hasRole('Receptionist'),
+            403
+        );
+
+        $validated = $request->validated();
+
+        $payload = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'country' => $validated['country'],
+            'gender' => $validated['gender'],
+            'avatar' => $this->replaceAvatar($receptionist, $request->file('avatar')) ?? $receptionist->avatar,
+        ];
+
+        if (filled($validated['password'] ?? null)) {
+            $payload['password'] = bcrypt($validated['password']); // مهم
+        }
+
+        $receptionist->update($payload);
+
+        return back()->with('success', 'Receptionist updated successfully.');
     }
 }
