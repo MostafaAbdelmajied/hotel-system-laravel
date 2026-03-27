@@ -24,9 +24,7 @@ class PendingClientController extends Controller
                 'created_at',
             ])
             ->where('status', UserStatus::Pending->value)
-            ->whereHas('roles', function ($query): void {
-                $query->whereIn('name', ['Client', 'client']);
-            })
+            ->role('Client') 
             ->orderByDesc('created_at')
             ->paginate(10)
             ->withQueryString();
