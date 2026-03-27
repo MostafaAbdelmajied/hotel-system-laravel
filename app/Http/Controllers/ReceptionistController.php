@@ -72,7 +72,7 @@ class ReceptionistController extends Controller
             $receptionist = User::query()->create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => bcrypt($validated['password']), // مهم
+                'password' => $validated['password'],
                 'country' => $validated['country'],
                 'gender' => $validated['gender'],
                 'avatar' => $this->storeAvatar($request->file('avatar')),
@@ -89,11 +89,6 @@ class ReceptionistController extends Controller
 
     public function update(UpdateReceptionistRequest $request, User $receptionist): RedirectResponse
     {
-        abort_unless(
-            $request->user()?->hasRole('Admin') && $receptionist->hasRole('Receptionist'),
-            403
-        );
-
         $validated = $request->validated();
 
         $payload = [
@@ -105,7 +100,7 @@ class ReceptionistController extends Controller
         ];
 
         if (filled($validated['password'] ?? null)) {
-            $payload['password'] = bcrypt($validated['password']); // مهم
+            $payload['password'] = $validated['password'];
         }
 
         $receptionist->update($payload);
