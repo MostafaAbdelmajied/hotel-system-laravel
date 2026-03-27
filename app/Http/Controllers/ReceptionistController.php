@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserStatus;
+use App\Http\Requests\StoreReceptionistRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,5 +56,31 @@ class ReceptionistController extends Controller
             'countries' => cachedCountries(),
             'filters' => ['search' => $search],
         ]);
+    }
+
+    public function store(StoreReceptionistRequest $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $validated = $request->validated();
+
+        DB::transaction(function () use ($user, $validated, $request): void {
+            $receptionist = User::query()->create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => bcrypt($validated['password']), // مهم
+                'country' => $validated['country'],
+                'gender' => $validated['gender'],
+                'avatar' => $this->storeAvatar($request->file('avatar')),
+                'status' => UserStatus::Approved,
+                'approved_by' => $user->id,
+                'approved_at' => now(),
+            ]);
+
+            $receptionist->assignRole('Receptionist');
+        });
+
+        return back()->with('success', 'Receptionist created successfully.');
     }
 }
