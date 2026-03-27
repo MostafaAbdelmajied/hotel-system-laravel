@@ -9,7 +9,9 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -109,5 +111,43 @@ class ReceptionistController extends Controller
         $receptionist->update($payload);
 
         return back()->with('success', 'Receptionist updated successfully.');
+    }
+
+    public function destroy(Request $request, User $receptionist): RedirectResponse
+    {
+        abort_unless(
+            $request->user()?->hasRole('Admin') && $receptionist->hasRole('Receptionist'),
+            403
+        );
+
+        if ($receptionist->avatar !== null && $receptionist->avatar !== 'default.png') {
+            Storage::disk('public')->delete($receptionist->avatar);
+        }
+
+        $receptionist->delete();
+
+        return back()->with('success', 'Receptionist deleted successfully.');
+    }
+
+    private function storeAvatar(?UploadedFile $avatar): ?string
+    {
+        if ($avatar === null) {
+            return null;
+        }
+
+        return $avatar->store('avatars', 'public');
+    }
+
+    private function replaceAvatar(User $receptionist, ?UploadedFile $avatar): ?string
+    {
+        if ($avatar === null) {
+            return null;
+        }
+
+        if ($receptionist->avatar !== null && $receptionist->avatar !== 'default.png') {
+            Storage::disk('public')->delete($receptionist->avatar);
+        }
+
+        return $avatar->store('avatars', 'public');
     }
 }
