@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserStatus;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
@@ -20,11 +19,11 @@ class UserSeeder extends Seeder
             User::factory()
                 ->count(5)
                 ->create([
-                    'status' => $role->name === 'Client' ? \App\Enums\UserStatus::Pending : \App\Enums\UserStatus::Approved,
+                    'status' => $role->name === 'Client' ? UserStatus::Pending : UserStatus::Approved,
                 ])
-                ->each(function ($user, $index) use($role) {
-                    $user->name = $role->name . ' User' . ($index + 1);
-                    $user->email = strtolower($role->name) . ($index + 1) . '@example.com';
+                ->each(function ($user, $index) use ($role) {
+                    $user->name = $role->name.' User'.($index + 1);
+                    $user->email = strtolower($role->name).($index + 1).'@example.com';
                     $user->save();
                     $user->assignRole($role->name);
                 });
