@@ -79,6 +79,7 @@ const formatGender = (value) => {
                             <tr class="bg-muted/40 text-left">
                                 <th class="px-4 py-3 font-medium">Name</th>
                                 <th class="px-4 py-3 font-medium">Email</th>
+                                <th class="px-4 py-3 font-medium">Mobile number</th>
                                 <th class="px-4 py-3 font-medium">Country</th>
                                 <th class="px-4 py-3 font-medium">Gender</th>
                                 <th class="px-4 py-3 font-medium">Approved At</th>
@@ -88,6 +89,7 @@ const formatGender = (value) => {
                             <tr v-for="client in props.approvedClients.data" :key="client.id">
                                 <td class="px-4 py-3">{{ client.name }}</td>
                                 <td class="px-4 py-3">{{ client.email }}</td>
+                                <td class="px-4 py-3">{{ client.mobile_number }}</td>
                                 <td class="px-4 py-3">{{ client.country }}</td>
                                 <td class="px-4 py-3">{{ formatGender(client.gender) }}</td>
                                 <td class="px-4 py-3">{{ formatDate(client.approved_at) }}</td>
