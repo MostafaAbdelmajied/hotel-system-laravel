@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import { VueTelInput } from 'vue-tel-input';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -10,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
+import 'vue-tel-input/vue-tel-input.css';
 
 defineProps<{
     countries: string[];
@@ -18,6 +20,7 @@ defineProps<{
 const form = useForm<{
     name: string;
     email: string;
+    mobile_number: string;
     country: string;
     gender: string;
     avatar: File | null;
@@ -26,6 +29,7 @@ const form = useForm<{
 }>({
     name: '',
     email: '',
+    mobile_number: '',
     country: '',
     gender: '',
     avatar: null,
@@ -44,7 +48,8 @@ const submit = (): void => {
         return payload;
     }).post(store().url, {
         forceFormData: true,
-        onSuccess: () => form.reset('password', 'password_confirmation', 'avatar'),
+        onSuccess: () =>
+            form.reset('password', 'password_confirmation', 'avatar'),
     });
 };
 
@@ -95,16 +100,37 @@ const handleAvatarChange = (event: Event): void => {
                 </div>
 
                 <div class="grid gap-2">
+                    <Label for="mobile_number">Mobile Number</Label>
+                    <vue-tel-input
+                        v-model="form.mobile_number"
+                        mode="international"
+                        :inputOptions="{
+                            showDialCode: true,
+                            tabindex: 3,
+                        }"
+                        class="custom-tel-input"
+                    ></vue-tel-input>
+                    <InputError :message="form.errors.mobile_number" />
+                </div>
+
+                <div class="grid gap-2">
                     <Label for="country">Country</Label>
                     <select
                         id="country"
                         v-model="form.country"
                         name="country"
                         required
-                        :tabindex="3"
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+                        :tabindex="4"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <option value="" disabled selected class="bg-background text-foreground">Select country</option>
+                        <option
+                            value=""
+                            disabled
+                            selected
+                            class="bg-background text-foreground"
+                        >
+                            Select country
+                        </option>
                         <option
                             v-for="country in countries"
                             :key="country"
@@ -124,12 +150,29 @@ const handleAvatarChange = (event: Event): void => {
                         v-model="form.gender"
                         name="gender"
                         required
-                        :tabindex="4"
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+                        :tabindex="5"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <option value="" disabled selected class="bg-background text-foreground">Select gender</option>
-                        <option value="male" class="bg-background text-foreground">Male</option>
-                        <option value="female" class="bg-background text-foreground">Female</option>
+                        <option
+                            value=""
+                            disabled
+                            selected
+                            class="bg-background text-foreground"
+                        >
+                            Select gender
+                        </option>
+                        <option
+                            value="male"
+                            class="bg-background text-foreground"
+                        >
+                            Male
+                        </option>
+                        <option
+                            value="female"
+                            class="bg-background text-foreground"
+                        >
+                            Female
+                        </option>
                     </select>
                     <InputError :message="form.errors.gender" />
                 </div>
@@ -141,7 +184,7 @@ const handleAvatarChange = (event: Event): void => {
                         type="file"
                         name="avatar"
                         accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-                        :tabindex="5"
+                        :tabindex="6"
                         @change="handleAvatarChange"
                     />
                     <InputError :message="form.errors.avatar" />
@@ -152,7 +195,7 @@ const handleAvatarChange = (event: Event): void => {
                     <PasswordInput
                         id="password"
                         required
-                        :tabindex="6"
+                        :tabindex="7"
                         autocomplete="new-password"
                         name="password"
                         v-model="form.password"
@@ -166,7 +209,7 @@ const handleAvatarChange = (event: Event): void => {
                     <PasswordInput
                         id="password_confirmation"
                         required
-                        :tabindex="7"
+                        :tabindex="8"
                         autocomplete="new-password"
                         name="password_confirmation"
                         v-model="form.password_confirmation"
@@ -178,7 +221,7 @@ const handleAvatarChange = (event: Event): void => {
                 <Button
                     type="submit"
                     class="mt-2 w-full"
-                    tabindex="8"
+                    tabindex="9"
                     :disabled="form.processing"
                     data-test="register-user-button"
                 >
@@ -192,10 +235,38 @@ const handleAvatarChange = (event: Event): void => {
                 <TextLink
                     :href="login()"
                     class="underline underline-offset-4"
-                    :tabindex="9"
+                    :tabindex="10"
                     >Log in</TextLink
                 >
             </div>
         </form>
     </AuthBase>
 </template>
+
+<style>
+@reference "../../../css/app.css";
+
+.custom-tel-input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background text-sm shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.custom-tel-input .vti__input {
+    @apply bg-transparent text-foreground;
+}
+
+.custom-tel-input .vti__dropdown:hover {
+    @apply bg-muted;
+}
+
+.custom-tel-input .vti__dropdown-list {
+    @apply z-50 mt-1 max-h-60 overflow-auto rounded-md border border-input bg-popover text-popover-foreground shadow-md;
+}
+
+.custom-tel-input .vti__dropdown-item {
+    @apply px-2 py-1.5 text-sm;
+}
+
+.custom-tel-input .vti__dropdown-item.highlighted {
+    @apply bg-accent text-accent-foreground;
+}
+</style>
