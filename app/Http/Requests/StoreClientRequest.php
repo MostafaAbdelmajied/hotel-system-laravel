@@ -20,6 +20,7 @@ class StoreClientRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($this->clientIdForUniqueEmail())],
+            'mobile_number' => ['required', 'string', 'max:20', Rule::unique('users', 'mobile_number')->ignore($this->clientIdForUniqueEmail())],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'country' => ['required', 'string', Rule::in(cachedCountries())],
             'gender' => ['required', Rule::enum(Gender::class)],
