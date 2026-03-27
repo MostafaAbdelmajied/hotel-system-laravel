@@ -81,4 +81,25 @@ class ManagerController extends Controller
 
         return back()->with('success', 'Manager created successfully.');
     }
+
+    public function update(UpdateManagerRequest $request, User $manager): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        $payload = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'country' => $validated['country'],
+            'gender' => $validated['gender'],
+            'avatar' => $this->replaceAvatar($manager, $request->file('avatar')) ?? $manager->avatar,
+        ];
+
+        if (filled($validated['password'] ?? null)) {
+            $payload['password'] = $validated['password'];
+        }
+
+        $manager->update($payload);
+
+        return back()->with('success', 'Manager updated successfully.');
+    }
 }
