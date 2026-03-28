@@ -1,9 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { approve } from '@/routes/clients';
+
+type PageProps = {
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+};
 
 const props = defineProps({
     pendingClients: {
@@ -12,8 +19,8 @@ const props = defineProps({
     },
 });
 
-const page = usePage();
-const approvingClientId = ref(null);
+const page = usePage<PageProps>();
+const approvingClientId = ref<number | null>(null);
 
 const breadcrumbs = [
     {
@@ -25,13 +32,13 @@ const breadcrumbs = [
 const flashSuccess = computed(() => page.props.flash?.success);
 const flashError = computed(() => page.props.flash?.error);
 
-const formatDate = (value) => {
+const formatDate = (value: string): string => {
     return new Intl.DateTimeFormat('en-US', {
         dateStyle: 'medium',
     }).format(new Date(value));
 };
 
-const formatGender = (value) => {
+const formatGender = (value: string | null): string => {
     if (!value) {
         return 'N/A';
     }
@@ -39,7 +46,15 @@ const formatGender = (value) => {
     return value.charAt(0).toUpperCase() + value.slice(1);
 };
 
-const approveClient = (clientId) => {
+const normalizePaginationLabel = (label: string): string => {
+    return label
+        .replace('&laquo; Previous', 'Previous')
+        .replace('Next &raquo;', 'Next')
+        .replace(/&laquo;|&raquo;/g, '')
+        .trim();
+};
+
+const approveClient = (clientId: number): void => {
     approvingClientId.value = clientId;
 
     router.post(approve.form(clientId).action, {}, {
@@ -123,16 +138,18 @@ const approveClient = (clientId) => {
                         <span
                             v-if="!paginationLink.url"
                             class="rounded-md border px-3 py-1.5 text-xs text-muted-foreground"
-                            v-html="paginationLink.label"
-                        />
+                        >
+                            {{ normalizePaginationLabel(paginationLink.label) }}
+                        </span>
                         <Link
                             v-else
                             :href="paginationLink.url"
                             class="rounded-md border px-3 py-1.5 text-xs"
                             :class="paginationLink.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
                             preserve-scroll
-                            v-html="paginationLink.label"
-                        />
+                        >
+                            {{ normalizePaginationLabel(paginationLink.label) }}
+                        </Link>
                     </template>
                 </div>
             </div>

@@ -3,7 +3,7 @@
 use App\Enums\Gender;
 use App\Enums\UserStatus;
 use App\Models\User;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonImmutable;
 
 test('it casts gender and status to enums and resolves approver relationship', function () {
     $approver = User::factory()->create();
@@ -19,7 +19,7 @@ test('it casts gender and status to enums and resolves approver relationship', f
     expect($user->gender)->toBe(Gender::Female)
         ->and($user->status)->toBe(UserStatus::Approved)
         ->and($user->approvedBy?->is($approver))->toBeTrue()
-        ->and($user->approved_at)->toBeInstanceOf(Carbon::class);
+        ->and($user->approved_at)->toBeInstanceOf(CarbonImmutable::class);
 });
 
 test('it defaults status to pending when not provided', function () {

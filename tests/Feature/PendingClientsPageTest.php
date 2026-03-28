@@ -41,7 +41,7 @@ test('authorized staff can access pending clients page', function (string $role)
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('clients/pending-clients')
-            ->where('pendingClients.data', function (array $clients) use ($pendingClient, $approvedClient, $pendingManager): bool {
+            ->where('pendingClients.data', function ($clients) use ($pendingClient, $approvedClient, $pendingManager): bool {
                 return count($clients) === 1
                     && $clients[0]['id'] === $pendingClient->id
                     && $clients[0]['email'] === $pendingClient->email

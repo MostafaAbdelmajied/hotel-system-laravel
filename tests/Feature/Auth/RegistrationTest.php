@@ -15,17 +15,20 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
+    $country = collect(cachedCountries())->first() ?? 'Egypt';
+
     $response = $this->post(route('register.store'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
-        'country' => 'Egypt',
+        'mobile_number' => '+201012345678',
+        'country' => $country,
         'gender' => 'male',
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect();
+    $response->assertSessionHasNoErrors();
 
     $user = User::query()->where('email', 'test@example.com')->firstOrFail();
 

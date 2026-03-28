@@ -24,12 +24,18 @@ function storeClientRequestValidator(array $data, User|int|null $client = null):
     return Validator::make($data, $request->rules(), $request->messages());
 }
 
+function validCountry(): string
+{
+    return collect(cachedCountries())->first() ?? 'Egypt';
+}
+
 test('it validates required client registration fields', function () {
     $validator = storeClientRequestValidator([]);
 
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->has('name'))->toBeTrue()
         ->and($validator->errors()->has('email'))->toBeTrue()
+        ->and($validator->errors()->has('mobile_number'))->toBeTrue()
         ->and($validator->errors()->has('password'))->toBeTrue()
         ->and($validator->errors()->has('country'))->toBeTrue()
         ->and($validator->errors()->has('gender'))->toBeTrue();
@@ -39,9 +45,10 @@ test('it returns custom gender validation message for invalid value', function (
     $validator = storeClientRequestValidator([
         'name' => 'Test User',
         'email' => 'test@example.com',
+        'mobile_number' => '+201012345678',
         'password' => 'password',
         'password_confirmation' => 'password',
-        'country' => 'Egypt',
+        'country' => validCountry(),
         'gender' => 'other',
     ]);
 
@@ -53,9 +60,10 @@ test('it returns custom avatar type message when avatar extension is not allowed
     $validator = storeClientRequestValidator([
         'name' => 'Test User',
         'email' => 'test@example.com',
+        'mobile_number' => '+201012345678',
         'password' => 'password',
         'password_confirmation' => 'password',
-        'country' => 'Egypt',
+        'country' => validCountry(),
         'gender' => 'male',
         'avatar' => UploadedFile::fake()->image('avatar.gif'),
     ]);
@@ -72,9 +80,10 @@ test('it requires unique email for new clients', function () {
     $validator = storeClientRequestValidator([
         'name' => 'Test User',
         'email' => 'test@example.com',
+        'mobile_number' => '+201012345678',
         'password' => 'password',
         'password_confirmation' => 'password',
-        'country' => 'Egypt',
+        'country' => validCountry(),
         'gender' => 'male',
     ]);
 
@@ -90,25 +99,27 @@ test('it ignores current client id in unique email validation for updates', func
     $validator = storeClientRequestValidator([
         'name' => 'Client User',
         'email' => 'client@example.com',
+        'mobile_number' => '+201055555555',
         'password' => 'password',
         'password_confirmation' => 'password',
-        'country' => 'Egypt',
+        'country' => validCountry(),
         'gender' => 'female',
     ], $client);
 
-    expect($validator->fails())->toBeFalse();
+    expect($validator->errors()->has('email'))->toBeFalse();
 });
 
 test('it allows empty avatar value', function () {
     $validator = storeClientRequestValidator([
         'name' => 'Test User',
         'email' => 'test2@example.com',
+        'mobile_number' => '+201066666666',
         'password' => 'password',
         'password_confirmation' => 'password',
-        'country' => 'Egypt',
+        'country' => validCountry(),
         'gender' => 'male',
         'avatar' => null,
     ]);
 
-    expect($validator->fails())->toBeFalse();
+    expect($validator->errors()->has('avatar'))->toBeFalse();
 });

@@ -1,7 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+
+type PageProps = {
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+};
 
 const props = defineProps({
     approvedClients: {
@@ -10,7 +17,7 @@ const props = defineProps({
     },
 });
 
-const page = usePage();
+const page = usePage<PageProps>();
 
 const breadcrumbs = [
     {
@@ -22,7 +29,7 @@ const breadcrumbs = [
 const flashSuccess = computed(() => page.props.flash?.success);
 const flashError = computed(() => page.props.flash?.error);
 
-const formatDate = (value) => {
+const formatDate = (value: string | null): string => {
     if (!value) {
         return 'N/A';
     }
@@ -33,12 +40,20 @@ const formatDate = (value) => {
     }).format(new Date(value));
 };
 
-const formatGender = (value) => {
+const formatGender = (value: string | null): string => {
     if (!value) {
         return 'N/A';
     }
 
     return value.charAt(0).toUpperCase() + value.slice(1);
+};
+
+const normalizePaginationLabel = (label: string): string => {
+    return label
+        .replace('&laquo; Previous', 'Previous')
+        .replace('Next &raquo;', 'Next')
+        .replace(/&laquo;|&raquo;/g, '')
+        .trim();
 };
 </script>
 
@@ -106,16 +121,18 @@ const formatGender = (value) => {
                         <span
                             v-if="!paginationLink.url"
                             class="rounded-md border px-3 py-1.5 text-xs text-muted-foreground"
-                            v-html="paginationLink.label"
-                        />
+                        >
+                            {{ normalizePaginationLabel(paginationLink.label) }}
+                        </span>
                         <Link
                             v-else
                             :href="paginationLink.url"
                             class="rounded-md border px-3 py-1.5 text-xs"
                             :class="paginationLink.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
                             preserve-scroll
-                            v-html="paginationLink.label"
-                        />
+                        >
+                            {{ normalizePaginationLabel(paginationLink.label) }}
+                        </Link>
                     </template>
                 </div>
             </div>
