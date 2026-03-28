@@ -4,8 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class StoreFloorRequest extends FormRequest
+class UpdateFloorRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,8 +24,18 @@ class StoreFloorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'nullable|string|max:255|unique:floors,name',
-            'number' => 'nullable|string|max:255|unique:floors,number',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('floors', 'name')->ignore($this->route('floor')),
+            ],
+            'number' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('floors', 'number')->ignore($this->route('floor')),
+            ],
             'managed_by' => 'required|exists:users,id',
         ];
     }

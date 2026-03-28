@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, UserCheck, Users } from 'lucide-vue-next';
+import { BookOpen, DoorOpen, FolderGit2, Layers, LayoutGrid, UserCheck, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -13,7 +13,7 @@ import {
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem,
+    SidebarMenuItem
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
@@ -39,9 +39,24 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (page.props.auth?.canViewMyApprovedClients) {
         items.push({
-            title: page.props.auth?.isAdmin ? 'Approved Clients' : 'My Approved Clients',
+            title: page.props.auth?.isAdmin
+                ? 'Approved Clients'
+                : 'My Approved Clients',
             href: '/clients/my-approved',
             icon: UserCheck,
+        });
+    }
+
+    if (page.props.auth?.isManager || page.props.auth?.isAdmin) {
+        items.push({
+            title: 'Manage Floors',
+            href: '/manager/floors',
+            icon: Layers,
+        });
+        items.push({
+            title: 'Manage Rooms',
+            href: '/manager/rooms',
+            icon: DoorOpen,
         });
     }
 
@@ -67,7 +82,7 @@ const footerNavItems: NavItem[] = [
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
+                    <SidebarMenuButton as-child size="lg">
                         <Link :href="dashboard()">
                             <AppLogo />
                         </Link>
