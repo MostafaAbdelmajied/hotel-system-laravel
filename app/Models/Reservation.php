@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ReservationStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,7 @@ class Reservation extends Model
         'paid_price',
         'check_in',
         'check_out',
+        'status',
     ];
 
     protected $casts = [
@@ -27,6 +29,7 @@ class Reservation extends Model
         'paid_price' => 'integer',
         'check_in' => 'date',
         'check_out' => 'date',
+        'status' => ReservationStatus::class,
     ];
 
     public function user(): BelongsTo

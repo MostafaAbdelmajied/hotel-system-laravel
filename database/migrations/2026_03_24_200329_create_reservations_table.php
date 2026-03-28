@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ReservationStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +17,10 @@ return new class extends Migration
             $table->foreignId('client_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('room_id')->constrained('rooms')->restrictOnDelete();
             $table->integer('accompany_number');
-            $table->bigInteger('paid_price');
+            $table->date('check_in');
+            $table->date('check_out');
+            $table->bigInteger('price')->unsigned();
+            $table->enum('status', ReservationStatus::cases())->default(ReservationStatus::PENDING->value);
             $table->timestamps();
         });
     }

@@ -71,4 +71,11 @@ class Room extends Model
     {
         return number_format($this->price / 100, 2, '.', '');
     }
+
+    public function hasActiveReservation(): bool
+    {
+        return $this->reservations()
+            ->where('check_out', '>', now())
+            ->exists();
+    }
 }
