@@ -39,13 +39,16 @@ const form = useForm<{
 
 const submit = (): void => {
     form.transform((data) => {
-        const payload = { ...data };
+        const { avatar, ...payload } = data;
 
-        if (!payload.avatar) {
-            delete payload.avatar;
+        if (!avatar) {
+            return payload;
         }
 
-        return payload;
+        return {
+            ...payload,
+            avatar,
+        };
     }).post(store().url, {
         forceFormData: true,
         onSuccess: () =>

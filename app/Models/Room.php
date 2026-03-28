@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,6 +45,26 @@ class Room extends Model
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
+    }
+
+    public function scopeAvailableBetween(Builder $query, string|CarbonInterface $checkIn, string|CarbonInterface $checkOut): Builder
+    {
+        $checkInDate = $checkIn instanceof CarbonInterface ? $checkIn->toDateString() : $checkIn;
+        $checkOutDate = $checkOut instanceof CarbonInterface ? $checkOut->toDateString() : $checkOut;
+
+        return $query->whereDoesntHave('reservations', function (Builder $reservationQuery) use ($checkInDate, $checkOutDate) {
+            $reservationQuery->overlapping($checkInDate, $checkOutDate);
+        });
+    }
+
+    public function isAvailableBetween(string|CarbonInterface $checkIn, string|CarbonInterface $checkOut): bool
+    {
+        $checkInDate = $checkIn instanceof CarbonInterface ? $checkIn->toDateString() : $checkIn;
+        $checkOutDate = $checkOut instanceof CarbonInterface ? $checkOut->toDateString() : $checkOut;
+
+        return ! $this->reservations()
+            ->overlapping($checkInDate, $checkOutDate)
+            ->exists();
     }
 
     public function getPriceInDollarsAttribute(): string

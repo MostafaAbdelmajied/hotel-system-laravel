@@ -35,7 +35,7 @@ test('manager rooms page returns room prices in dollars', function () {
             ->where('rooms.data.0.price_in_dollars', '125.00')
             ->where('floors.0.id', $floor->id)
             ->where('floors.0.name', 'First Floor')
-            ->where('floors.0.number', '1000')
+            ->where('floors.0.number', $floor->fresh()->number)
             ->where('rooms.data.0.floor.name', 'First Floor'),
         );
 });
@@ -91,10 +91,12 @@ test('manager can not delete a reserved room', function () {
     ]);
 
     Reservation::query()->create([
-        'client_id' => $client->id,
+        'user_id' => $client->id,
         'room_id' => $room->id,
         'accompany_number' => 2,
         'paid_price' => 15000,
+        'check_in' => now()->addDay()->toDateString(),
+        'check_out' => now()->addDays(3)->toDateString(),
     ]);
 
     $this->actingAs($manager)
