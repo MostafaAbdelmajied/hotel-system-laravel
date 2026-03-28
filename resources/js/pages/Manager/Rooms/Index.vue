@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Auth, BreadcrumbItem } from '@/types';
+import type { Auth, BreadcrumbItem, Floor } from '@/types';
 
 type Room = {
     id: number;
@@ -16,22 +16,12 @@ type Room = {
     capacity: number;
     price: number;
     price_in_dollars: string;
-    floor: {
-        id: number | null;
-        name: string | null;
-        number: string | null;
-    };
+    floor: Floor;
     creator: {
         id: number;
         name: string;
     } | null;
     created_by: number | null;
-};
-
-type Floor = {
-    id: number;
-    name: string;
-    number: string;
 };
 
 type PaginationLink = {
