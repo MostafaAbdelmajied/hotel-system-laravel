@@ -10,6 +10,7 @@ export type User = {
 };
 
 export type Auth = {
+    isManager: boolean | undefined;
     user: User;
     isAdmin?: boolean;
     canViewPendingClients?: boolean;
