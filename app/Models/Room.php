@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Policies\RoomPolicy;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[UsePolicy(RoomPolicy::class)]
 class Room extends Model
 {
     use HasFactory;
