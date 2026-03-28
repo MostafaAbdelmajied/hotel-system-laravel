@@ -17,7 +17,7 @@ class UpdateRoomRequest extends FormRequest
             return false;
         }
 
-        return $user->hasRole('Admin') || $room->created_by === $user->id;
+        return $user->hasRole(['Admin', 'Manager']) || $room->created_by === $user->id;
     }
 
     public function rules(): array

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Floor;
 use App\Models\User;
+use App\Policies\FloorPolicy;
 use App\Policies\UserPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureAuthorization();
+        Gate::policy(Floor::class, FloorPolicy::class);
     }
 
     /**
