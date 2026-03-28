@@ -2,9 +2,13 @@
 
 use App\Enums\UserStatus;
 use App\Models\User;
+use App\Notifications\AccountApprovedNotification;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 
 test('receptionist can approve a pending client', function () {
+    Notification::fake();
+
     Role::findOrCreate('Receptionist');
     Role::findOrCreate('Client');
 
@@ -33,6 +37,8 @@ test('receptionist can approve a pending client', function () {
     expect($client->status)->toBe(UserStatus::Approved)
         ->and($client->approved_by)->toBe($receptionist->id)
         ->and($client->approved_at)->not->toBeNull();
+
+    Notification::assertSentTo($client, AccountApprovedNotification::class);
 });
 
 test('user without approval role can not approve pending clients', function () {
@@ -122,4 +128,20 @@ test('non client users can not be approved as clients', function () {
     expect($manager->status)->toBe(UserStatus::Pending)
         ->and($manager->approved_by)->toBeNull()
         ->and($manager->approved_at)->toBeNull();
+});
+
+test('account approved notification renders the approval mail view', function () {
+    $client = User::factory()->create([
+        'name' => 'Client User',
+    ]);
+
+    $notification = new AccountApprovedNotification;
+
+    $renderedMail = $notification->toMail($client)->render();
+
+    expect($renderedMail)
+        ->toContain('Account Approved')
+        ->toContain('Hello Client User')
+        ->toContain('Your account has been approved')
+        ->toContain(route('login'));
 });
