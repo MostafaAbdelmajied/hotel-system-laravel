@@ -12,3 +12,9 @@ export type NavItem = {
     icon?: LucideIcon;
     isActive?: boolean;
 };
+
+export type PaginationLink = {
+    url: string | null;
+    label: string;
+    active: boolean;
+};

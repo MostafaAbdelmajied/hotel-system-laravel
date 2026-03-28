@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,14 +15,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-        $this->call(RolesAndPermissionsSeeder::class);
+        $this->call(
+            [
+                RolesAndPermissionsSeeder::class, StaffAccountsSeeder::class, FloorSeeder::class, RoomsSeeder::class,
+            ]
+        );
 
         // admin
         $admin = User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@admin.com',
-            'password' => Hash::make('123456')
+            'password' => Hash::make('123456'),
         ]);
         $admin->assignRole('Admin');
 

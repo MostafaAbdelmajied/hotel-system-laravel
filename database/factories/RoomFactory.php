@@ -3,23 +3,23 @@
 namespace Database\Factories;
 
 use App\Models\Floor;
+use App\Models\Room;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class FloorFactory extends Factory
+class RoomFactory extends Factory
 {
-    protected $model = Floor::class;
+    protected $model = Room::class;
 
     public function definition(): array
     {
         return [
-            'name' => 'F'.fake()->unique()->regexify('[A-Za-z]{3}'),
+            'number' => (string) fake()->unique()->numberBetween(101, 999),
+            'capacity' => fake()->numberBetween(1, 5),
+            'price' => fake()->numberBetween(5000, 50000), // Price in cents
+            'floor_id' => Floor::inRandomOrder()->first()->id ?? Floor::factory(),
             'created_by' => function () {
                 return User::role(['Admin', 'Manager'])->inRandomOrder()->first()?->id ?? User::factory()->create()->assignRole('Admin')->id;
-            },
-            'managed_by' => function () {
-                return User::role(['Manager'])->inRandomOrder()->first()?->id ?? User::factory()->create()->assignRole('Manager')->id;
-
             },
         ];
     }

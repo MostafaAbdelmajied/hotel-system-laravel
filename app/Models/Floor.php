@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Floor extends Model
 {
@@ -29,7 +30,12 @@ class Floor extends Model
     {
         parent::booted();
         static::creating(function (Floor $floor) {
-            $floor->number = mt_rand(1000, 9999);
+            if (!$floor->name) {
+                $floor->name = 'FLR-' . strtoupper(Str::random(3));
+            }
+            if (!$floor->number) {
+                $floor->number = 'F-' . mt_rand(100, 999);
+            }
         });
     }
 

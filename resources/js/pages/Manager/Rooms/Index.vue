@@ -1,14 +1,14 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table';
 import type { ColumnDef } from '@tanstack/vue-table';
+import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table';
 import { computed, onBeforeUnmount, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Auth, BreadcrumbItem, Floor } from '@/types';
+import type { Auth, BreadcrumbItem, Floor, PaginationLink } from '@/types';
 
 type Room = {
     id: number;
@@ -22,12 +22,6 @@ type Room = {
         name: string;
     } | null;
     created_by: number | null;
-};
-
-type PaginationLink = {
-    url: string | null;
-    label: string;
-    active: boolean;
 };
 
 type PaginatedRooms = {
@@ -192,7 +186,7 @@ function submitForm(): void {
 }
 
 function deleteRoom(room: Room): void {
-    if (! window.confirm(`Delete room ${room.number}? This cannot be undone.`)) {
+    if (!window.confirm(`Delete room ${room.number}? This cannot be undone.`)) {
         return;
     }
 
@@ -232,11 +226,15 @@ function queueSearch(): void {
 }
 
 function visitPage(url: string): void {
-    router.get(url, {}, {
-        preserveState: true,
-        preserveScroll: true,
-        only: ['rooms', 'filters'],
-    });
+    router.get(
+        url,
+        {},
+        {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['rooms', 'filters'],
+        },
+    );
 }
 
 onBeforeUnmount(() => {
@@ -265,7 +263,9 @@ onBeforeUnmount(() => {
                 {{ flashError }}
             </div>
 
-            <div class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+            <div
+                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            >
                 <div
                     class="flex flex-col gap-4 border-b border-sidebar-border/70 px-4 py-3 md:flex-row md:items-end md:justify-between dark:border-sidebar-border"
                 >
@@ -276,9 +276,13 @@ onBeforeUnmount(() => {
                         </p>
                     </div>
 
-                    <div class="flex flex-col gap-3 md:w-auto md:flex-row md:items-end">
+                    <div
+                        class="flex flex-col gap-3 md:w-auto md:flex-row md:items-end"
+                    >
                         <div class="w-full md:w-72">
-                            <Label for="room-search">Search by room number</Label>
+                            <Label for="room-search"
+                                >Search by room number</Label
+                            >
                             <Input
                                 id="room-search"
                                 v-model="search"
@@ -294,12 +298,17 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <div v-if="props.rooms.data.length === 0" class="px-4 py-10 text-center">
+                <div
+                    v-if="props.rooms.data.length === 0"
+                    class="px-4 py-10 text-center"
+                >
                     <p class="text-sm text-muted-foreground">No rooms found.</p>
                 </div>
 
                 <div v-else class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-sidebar-border/70 text-sm dark:divide-sidebar-border">
+                    <table
+                        class="min-w-full divide-y divide-sidebar-border/70 text-sm dark:divide-sidebar-border"
+                    >
                         <thead>
                             <tr
                                 v-for="headerGroup in table.getHeaderGroups()"
@@ -313,24 +322,29 @@ onBeforeUnmount(() => {
                                 >
                                     <FlexRender
                                         v-if="!header.isPlaceholder"
-                                        :render="header.column.columnDef.header"
                                         :props="header.getContext()"
+                                        :render="header.column.columnDef.header"
                                     />
                                 </th>
                                 <th class="px-4 py-3 font-medium">Actions</th>
                             </tr>
                         </thead>
 
-                        <tbody class="divide-y divide-sidebar-border/70 dark:divide-sidebar-border">
-                            <tr v-for="row in table.getRowModel().rows" :key="row.id">
+                        <tbody
+                            class="divide-y divide-sidebar-border/70 dark:divide-sidebar-border"
+                        >
+                            <tr
+                                v-for="row in table.getRowModel().rows"
+                                :key="row.id"
+                            >
                                 <td
                                     v-for="cell in row.getVisibleCells()"
                                     :key="cell.id"
                                     class="px-4 py-3"
                                 >
                                     <FlexRender
-                                        :render="cell.column.columnDef.cell"
                                         :props="cell.getContext()"
+                                        :render="cell.column.columnDef.cell"
                                     />
                                 </td>
                                 <td class="px-4 py-3">
@@ -339,23 +353,25 @@ onBeforeUnmount(() => {
                                         class="flex items-center gap-2"
                                     >
                                         <Button
-                                            type="button"
                                             size="sm"
+                                            type="button"
                                             variant="outline"
                                             @click="openEdit(row.original)"
                                         >
                                             Edit
                                         </Button>
                                         <Button
-                                            type="button"
                                             size="sm"
+                                            type="button"
                                             variant="destructive"
                                             @click="deleteRoom(row.original)"
                                         >
                                             Delete
                                         </Button>
                                     </div>
-                                    <span v-else class="text-muted-foreground">N/A</span>
+                                    <span v-else class="text-muted-foreground"
+                                        >N/A</span
+                                    >
                                 </td>
                             </tr>
                         </tbody>
@@ -367,7 +383,9 @@ onBeforeUnmount(() => {
                     class="flex flex-wrap items-center justify-between gap-3 border-t border-sidebar-border/70 px-4 py-3 dark:border-sidebar-border"
                 >
                     <p class="text-xs text-muted-foreground">
-                        Showing {{ props.rooms.from ?? 0 }} to {{ props.rooms.to ?? 0 }} of {{ props.rooms.total }} rooms
+                        Showing {{ props.rooms.from ?? 0 }} to
+                        {{ props.rooms.to ?? 0 }} of
+                        {{ props.rooms.total }} rooms
                     </p>
 
                     <div class="flex flex-wrap items-center gap-2">
@@ -382,9 +400,13 @@ onBeforeUnmount(() => {
                             />
                             <button
                                 v-else
-                                type="button"
+                                :class="
+                                    paginationLink.active
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'hover:bg-muted'
+                                "
                                 class="rounded-md border px-3 py-1.5 text-xs"
-                                :class="paginationLink.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
+                                type="button"
                                 @click="visitPage(paginationLink.url)"
                                 v-html="paginationLink.label"
                             />
@@ -405,11 +427,20 @@ onBeforeUnmount(() => {
                             {{ editingRoom ? 'Edit Room' : 'Create Room' }}
                         </h2>
                         <p class="text-sm text-muted-foreground">
-                            {{ editingRoom ? 'Update the selected room details.' : 'Add a new room to a floor.' }}
+                            {{
+                                editingRoom
+                                    ? 'Update the selected room details.'
+                                    : 'Add a new room to a floor.'
+                            }}
                         </p>
                     </div>
 
-                    <Button type="button" size="sm" variant="ghost" @click="closeModal">
+                    <Button
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                        @click="closeModal"
+                    >
                         Close
                     </Button>
                 </div>
@@ -420,7 +451,7 @@ onBeforeUnmount(() => {
                         <select
                             id="floor_id"
                             v-model="form.floor_id"
-                            class="border-input focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-9 rounded-md border bg-transparent px-3 text-sm outline-none focus-visible:ring-[3px]"
+                            class="h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
                         >
                             <option value="">Select floor</option>
                             <option
@@ -468,11 +499,21 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div class="flex justify-end gap-3">
-                        <Button type="button" variant="outline" @click="closeModal">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="closeModal"
+                        >
                             Cancel
                         </Button>
-                        <Button type="submit" :disabled="form.processing">
-                            {{ form.processing ? 'Saving...' : editingRoom ? 'Update Room' : 'Create Room' }}
+                        <Button :disabled="form.processing" type="submit">
+                            {{
+                                form.processing
+                                    ? 'Saving...'
+                                    : editingRoom
+                                      ? 'Update Room'
+                                      : 'Create Room'
+                            }}
                         </Button>
                     </div>
                 </form>

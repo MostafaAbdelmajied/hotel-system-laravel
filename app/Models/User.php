@@ -60,4 +60,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Reservation::class);
     }
+
+    public function createdFloors(): HasMany
+    {
+        return $this->hasMany(Floor::class, 'created_by');
+    }
+
+    public function managedFloors(): HasMany
+    {
+        return $this->hasMany(Floor::class, 'managed_by');
+    }
 }
