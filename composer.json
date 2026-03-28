@@ -55,7 +55,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npm run dev"
+            "npx concurrently -c \"#c4b5fd,#fdba74\" \"php artisan serve\" \"npm run dev\" --names=server,vite --kill-others"
         ],
         "dev:ssr": [
             "npm run build:ssr",
