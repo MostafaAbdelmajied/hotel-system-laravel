@@ -61,6 +61,7 @@ const props = defineProps<Props>();
 
 const page = usePage<PageProps>();
 const showModal = ref(false);
+const showConfirmDeleteModal = ref(false);
 const editingRoom = ref<Room | null>(null);
 const search = ref(props.filters.search ?? '');
 
@@ -167,6 +168,16 @@ function closeModal(): void {
     form.clearErrors();
 }
 
+function openConfirmDeleteModal(room: Room): void {
+    editingRoom.value = room;
+    showConfirmDeleteModal.value = true;
+}
+
+function closeConfirmDeleteModal(): void {
+    showConfirmDeleteModal.value = false;
+    editingRoom.value = null;
+}
+
 function submitForm(): void {
     const options = {
         preserveScroll: true,
@@ -185,13 +196,14 @@ function submitForm(): void {
     form.post('/manager/rooms', options);
 }
 
-function deleteRoom(room: Room): void {
-    if (!window.confirm(`Delete room ${room.number}? This cannot be undone.`)) {
+function deleteRoom(): void {
+    if (!editingRoom.value) {
         return;
     }
 
-    router.delete(`/manager/rooms/${room.id}`, {
+    router.delete(`/manager/rooms/${editingRoom.value.id}`, {
         preserveScroll: true,
+        onSuccess: () => closeConfirmDeleteModal(),
     });
 }
 
@@ -364,7 +376,11 @@ onBeforeUnmount(() => {
                                             size="sm"
                                             type="button"
                                             variant="destructive"
-                                            @click="deleteRoom(row.original)"
+                                            @click="
+                                                openConfirmDeleteModal(
+                                                    row.original,
+                                                )
+                                            "
                                         >
                                             Delete
                                         </Button>
@@ -517,6 +533,39 @@ onBeforeUnmount(() => {
                         </Button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div
+            v-if="showConfirmDeleteModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        >
+            <div class="w-full max-w-md rounded-xl bg-background p-6 shadow-lg">
+                <div class="flex flex-col gap-4">
+                    <h2 class="text-lg font-semibold">Delete Room</h2>
+                    <p class="text-sm text-muted-foreground">
+                        Are you sure you want to delete room "{{
+                            editingRoom?.number
+                        }}"? This action cannot be undone.
+                    </p>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="closeConfirmDeleteModal"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        @click="deleteRoom"
+                    >
+                        Delete Room
+                    </Button>
+                </div>
             </div>
         </div>
     </AppLayout>
