@@ -20,6 +20,7 @@ class Reservation extends Model
         'check_in',
         'check_out',
         'status',
+        'stripe_checkout_session_id',
     ];
 
     protected $casts = [
@@ -34,7 +35,7 @@ class Reservation extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function client(): BelongsTo

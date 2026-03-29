@@ -13,6 +13,8 @@ export type Auth = {
     isManager: boolean | undefined;
     user: User;
     isAdmin?: boolean;
+    isReceptionist?: boolean;
+    canViewReservations?: boolean;
     canViewPendingClients?: boolean;
     canViewMyApprovedClients?: boolean;
 };
