@@ -12,8 +12,12 @@ use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
-it('shows processing message on payment success when reservation is not yet created by webhook', function () {
+it('creates reservation on payment success when webhook has not created it yet', function () {
     $client = createApprovedClientForPaymentSuccessTest();
+    $room = createRoomForClientForPaymentSuccessTest($client, 31000, 4);
+
+    $checkIn = now()->addDays(5)->toDateString();
+    $checkOut = now()->addDays(7)->toDateString();
 
     $stripeService = Mockery::mock(StripeCheckoutService::class);
     $stripeService
@@ -23,6 +27,14 @@ it('shows processing message on payment success when reservation is not yet crea
         ->andReturn((object) [
             'id' => 'cs_test_paid_pending',
             'payment_status' => 'paid',
+            'metadata' => [
+                'user_id' => (string) $client->id,
+                'room_id' => (string) $room->id,
+                'accompany_number' => '2',
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'paid_price_snapshot_cents' => '31000',
+            ],
         ]);
 
     $this->app->instance(StripeCheckoutService::class, $stripeService);
@@ -31,7 +43,15 @@ it('shows processing message on payment success when reservation is not yet crea
         ->get(route('reservations.payment.success', ['session_id' => 'cs_test_paid_pending']))
         ->assertRedirect(route('dashboard'));
 
-    expect(Reservation::query()->count())->toBe(0);
+    $reservation = Reservation::query()
+        ->where('stripe_checkout_session_id', 'cs_test_paid_pending')
+        ->first();
+
+    expect($reservation)->not->toBeNull()
+        ->and($reservation->user_id)->toBe($client->id)
+        ->and($reservation->room_id)->toBe($room->id)
+        ->and($reservation->accompany_number)->toBe(2)
+        ->and($reservation->paid_price)->toBe(31000);
 });
 
 it('shows confirmed message on payment success when webhook already created reservation', function () {
