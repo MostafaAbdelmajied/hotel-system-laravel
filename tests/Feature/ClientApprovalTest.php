@@ -139,9 +139,8 @@ test('account approved notification renders the approval mail view', function ()
 
     $renderedMail = $notification->toMail($client)->render();
 
-    expect($renderedMail)
-        ->toContain('Account Approved')
-        ->toContain('Hello Client User')
-        ->toContain('Your account has been approved')
-        ->toContain(route('login'));
+    $this->assertStringContainsString('Account Approved', $renderedMail);
+    $this->assertStringContainsString('Hello Client User', $renderedMail);
+    $this->assertStringContainsString('Your account has been approved', $renderedMail);
+    $this->assertStringContainsString(route('login'), $renderedMail);
 });
