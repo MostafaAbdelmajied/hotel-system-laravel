@@ -93,17 +93,19 @@ class ReservationController extends Controller
                 'client_reference_id' => (string) $user?->id,
                 'success_url' => $successUrl,
                 'cancel_url' => $cancelUrl,
-                'line_items' => [[
-                    'quantity' => 1,
-                    'price_data' => [
-                        'currency' => 'usd',
-                        'unit_amount' => $paidPriceSnapshot,
-                        'product_data' => [
-                            'name' => "Room {$room->number} reservation",
-                            'description' => "{$validated['check_in']} to {$validated['check_out']}",
+                'line_items' => [
+                    [
+                        'quantity' => 1,
+                        'price_data' => [
+                            'currency' => 'usd',
+                            'unit_amount' => $paidPriceSnapshot,
+                            'product_data' => [
+                                'name' => "Room {$room->number} reservation",
+                                'description' => "{$validated['check_in']} to {$validated['check_out']}",
+                            ],
                         ],
                     ],
-                ]],
+                ],
                 'metadata' => [
                     'user_id' => (string) $user?->id,
                     'room_id' => (string) $room->id,
