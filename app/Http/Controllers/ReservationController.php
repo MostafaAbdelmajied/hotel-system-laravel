@@ -93,17 +93,19 @@ class ReservationController extends Controller
                 'client_reference_id' => (string) $user?->id,
                 'success_url' => $successUrl,
                 'cancel_url' => $cancelUrl,
-                'line_items' => [[
-                    'quantity' => 1,
-                    'price_data' => [
-                        'currency' => 'usd',
-                        'unit_amount' => $paidPriceSnapshot,
-                        'product_data' => [
-                            'name' => "Room {$room->number} reservation",
-                            'description' => "{$validated['check_in']} to {$validated['check_out']}",
+                'line_items' => [
+                    [
+                        'quantity' => 1,
+                        'price_data' => [
+                            'currency' => 'usd',
+                            'unit_amount' => $paidPriceSnapshot,
+                            'product_data' => [
+                                'name' => "Room {$room->number} reservation",
+                                'description' => "{$validated['check_in']} to {$validated['check_out']}",
+                            ],
                         ],
                     ],
-                ]],
+                ],
                 'metadata' => [
                     'user_id' => (string) $user?->id,
                     'room_id' => (string) $room->id,
@@ -143,6 +145,30 @@ class ReservationController extends Controller
         $reservation = Reservation::query()
             ->where('stripe_checkout_session_id', $sessionId)
             ->first();
+
+        if ($reservation === null) {
+            try {
+                $this->createReservationFromPaidSession(
+                    $sessionId,
+                    $this->extractMetadata($checkoutSession->metadata ?? null),
+                );
+            } catch (ValidationException $exception) {
+                Log::warning('Stripe success fallback reservation validation failed.', [
+                    'session_id' => $sessionId,
+                    'errors' => $exception->errors(),
+                ]);
+
+                return to_route('dashboard')->withErrors($exception->errors());
+            } catch (QueryException $exception) {
+                if ($exception->getCode() !== '23000') {
+                    throw $exception;
+                }
+            }
+
+            $reservation = Reservation::query()
+                ->where('stripe_checkout_session_id', $sessionId)
+                ->first();
+        }
 
         if ($reservation === null) {
             return to_route('dashboard')->with('success', 'Payment received. Reservation confirmation is processing.');

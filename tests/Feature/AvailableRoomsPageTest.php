@@ -13,7 +13,7 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 it('returns only available rooms for the requested date range', function () {
-    $client = createApprovedClient();
+    $client = createApprovedClientForAvailableRoomsTest();
 
     $floor = Floor::query()->create([
         'name' => 'Booking Floor',
@@ -88,7 +88,7 @@ it('returns only available rooms for the requested date range', function () {
 });
 
 it('paginates available rooms results', function () {
-    $client = createApprovedClient();
+    $client = createApprovedClientForAvailableRoomsTest();
 
     $floor = Floor::query()->create([
         'name' => 'Pagination Floor',
@@ -137,7 +137,7 @@ it('paginates available rooms results', function () {
 });
 
 it('validates the requested booking date range', function () {
-    $client = createApprovedClient();
+    $client = createApprovedClientForAvailableRoomsTest();
 
     $this->actingAs($client)
         ->from(route('dashboard'))
@@ -158,7 +158,7 @@ it('validates the requested booking date range', function () {
         ->assertSessionHasErrors(['check_in', 'check_out']);
 });
 
-function createApprovedClient(): User
+function createApprovedClientForAvailableRoomsTest(): User
 {
     $clientRole = Role::findOrCreate('Client');
 
