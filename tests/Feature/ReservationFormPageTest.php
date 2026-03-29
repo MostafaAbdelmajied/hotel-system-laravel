@@ -13,7 +13,7 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 it('shows reservation form for a selected room with selected dates', function () {
-    $client = createApprovedClient();
+    $client = createApprovedClientForReservationFormTest();
 
     $floor = Floor::query()->create([
         'name' => 'Reservation Floor',
@@ -52,7 +52,7 @@ it('shows reservation form for a selected room with selected dates', function ()
 });
 
 it('rechecks availability on submit before starting payment', function () {
-    $client = createApprovedClient();
+    $client = createApprovedClientForReservationFormTest();
 
     $floor = Floor::query()->create([
         'name' => 'Reservation Floor 2',
@@ -71,7 +71,7 @@ it('rechecks availability on submit before starting payment', function () {
     $checkIn = now()->addDays(8)->toDateString();
     $checkOut = now()->addDays(11)->toDateString();
 
-    insertReservation($client->id, $room->id, now()->addDays(9)->toDateString(), now()->addDays(12)->toDateString(), 18000);
+    insertReservationForReservationFormTest($client->id, $room->id, now()->addDays(9)->toDateString(), now()->addDays(12)->toDateString(), 18000);
 
     $this->actingAs($client)
         ->from(route('reservations.rooms.show', [
@@ -93,7 +93,7 @@ it('rechecks availability on submit before starting payment', function () {
 });
 
 it('does not create reservation record when payment flow starts', function () {
-    $client = createApprovedClient();
+    $client = createApprovedClientForReservationFormTest();
 
     $floor = Floor::query()->create([
         'name' => 'Reservation Floor 3',
@@ -128,7 +128,7 @@ it('does not create reservation record when payment flow starts', function () {
 });
 
 it('rejects past check in date when starting payment', function () {
-    $client = createApprovedClient();
+    $client = createApprovedClientForReservationFormTest();
 
     $floor = Floor::query()->create([
         'name' => 'Reservation Floor 4',
@@ -166,7 +166,7 @@ it('rejects past check in date when starting payment', function () {
         ->assertSessionHasErrors(['check_in']);
 });
 
-function createApprovedClient(): User
+function createApprovedClientForReservationFormTest(): User
 {
     $clientRole = Role::findOrCreate('Client');
 
@@ -178,7 +178,7 @@ function createApprovedClient(): User
     return $client;
 }
 
-function insertReservation(int $userId, int $roomId, string $checkIn, string $checkOut, int $price): void
+function insertReservationForReservationFormTest(int $userId, int $roomId, string $checkIn, string $checkOut, int $price): void
 {
     $reservation = [
         'room_id' => $roomId,
