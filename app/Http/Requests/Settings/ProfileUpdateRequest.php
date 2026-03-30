@@ -17,6 +17,17 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->profileRules($this->user()->id);
+        return [
+            ...$this->profileRules($this->user()->id),
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'avatar.mimes' => 'The avatar must be a file of type: jpg, jpeg, png.',
+            'avatar.image' => 'The avatar must be a valid image file.',
+        ];
     }
 }

@@ -49,6 +49,19 @@ const props = withDefaults(defineProps<Props>(), {
 const page = usePage();
 const auth = computed(() => page.props.auth);
 const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+const avatarUrl = computed(() => {
+    const avatar = auth.value.user?.avatar;
+
+    if (!avatar || avatar === '') {
+        return null;
+    }
+
+    if (avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('/')) {
+        return avatar;
+    }
+
+    return `/storage/${avatar}`;
+});
 
 const activeItemStyles =
     'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
@@ -249,8 +262,8 @@ const rightNavItems: NavItem[] = [
                                     class="size-8 overflow-hidden rounded-full"
                                 >
                                     <AvatarImage
-                                        v-if="auth.user.avatar"
-                                        :src="auth.user.avatar"
+                                        v-if="avatarUrl"
+                                        :src="avatarUrl"
                                         :alt="auth.user.name"
                                     />
                                     <AvatarFallback

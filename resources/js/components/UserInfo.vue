@@ -19,11 +19,27 @@ const { getInitials } = useInitials();
 const showAvatar = computed(
     () => props.user.avatar && props.user.avatar !== '',
 );
+
+const avatarUrl = computed(() => {
+    if (!props.user.avatar || props.user.avatar === '') {
+        return null;
+    }
+
+    if (
+        props.user.avatar.startsWith('http://')
+        || props.user.avatar.startsWith('https://')
+        || props.user.avatar.startsWith('/')
+    ) {
+        return props.user.avatar;
+    }
+
+    return `/storage/${props.user.avatar}`;
+});
 </script>
 
 <template>
     <Avatar class="h-8 w-8 overflow-hidden rounded-lg">
-        <AvatarImage v-if="showAvatar" :src="user.avatar!" :alt="user.name" />
+        <AvatarImage v-if="showAvatar && avatarUrl" :src="avatarUrl" :alt="user.name" />
         <AvatarFallback class="rounded-lg text-black dark:text-white">
             {{ getInitials(user.name) }}
         </AvatarFallback>

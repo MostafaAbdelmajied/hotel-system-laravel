@@ -30,6 +30,19 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+const avatarUrl = computed(() => {
+    const avatar = user.value?.avatar;
+
+    if (!avatar || avatar === '') {
+        return null;
+    }
+
+    if (avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('/')) {
+        return avatar;
+    }
+
+    return `/storage/${avatar}`;
+});
 </script>
 
 <template>
@@ -48,9 +61,35 @@ const user = computed(() => page.props.auth.user);
 
                 <Form
                     v-bind="ProfileController.update.form()"
+                    enctype="multipart/form-data"
                     class="space-y-6"
                     v-slot="{ errors, processing, recentlySuccessful }"
                 >
+                    <div class="grid gap-2">
+                        <Label for="avatar">Profile picture</Label>
+                        <div class="flex items-center gap-4">
+                            <img
+                                v-if="avatarUrl"
+                                :src="avatarUrl"
+                                :alt="`${user.name} avatar`"
+                                class="h-14 w-14 rounded-full border object-cover"
+                            />
+                            <div v-else class="text-sm text-muted-foreground">
+                                No profile picture uploaded yet.
+                            </div>
+                        </div>
+                        <Input
+                            id="avatar"
+                            type="file"
+                            name="avatar"
+                            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                        />
+                        <p class="text-xs text-muted-foreground">
+                            JPG or PNG, max 2MB.
+                        </p>
+                        <InputError class="mt-2" :message="errors.avatar" />
+                    </div>
+
                     <div class="grid gap-2">
                         <Label for="name">Name</Label>
                         <Input
