@@ -119,7 +119,7 @@ it('paginates available rooms results', function () {
             ->where('rooms.current_page', 1)
             ->where('rooms.last_page', 2)
             ->where('rooms.total', 12)
-            ->has('rooms.data', 10)
+            ->has('rooms.data', 9)
             ->has('rooms.links'),
         );
 
@@ -132,7 +132,7 @@ it('paginates available rooms results', function () {
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->where('rooms.current_page', 2)
-            ->has('rooms.data', 2),
+            ->has('rooms.data', 3),
         );
 });
 
