@@ -18,14 +18,35 @@ class RoomController extends Controller
     public function index(Request $request): Response
     {
         $search = trim((string) $request->input('search', ''));
+        $floorId = $this->resolveFloorId($request);
+        $sort = $this->resolveSortKey((string) $request->input('sort', 'number'));
+        $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50], true) ? $perPage : 10;
+        $sortColumn = $this->resolveSortColumn($sort);
 
         $rooms = Room::query()
+            ->select('rooms.*')
             ->with(['floor:id,name,number', 'creator:id,name'])
+            ->leftJoin('floors', 'floors.id', '=', 'rooms.floor_id')
+            ->leftJoin('users as creators', 'creators.id', '=', 'rooms.created_by')
             ->when($search !== '', function (Builder $query) use ($search): void {
-                $query->where('number', 'like', "%{$search}%");
+                $query->where(function (Builder $searchQuery) use ($search): void {
+                    $searchQuery
+                        ->where('rooms.number', 'like', "%{$search}%")
+                        ->orWhere('floors.name', 'like', "%{$search}%")
+                        ->orWhere('floors.number', 'like', "%{$search}%")
+                        ->orWhere('creators.name', 'like', "%{$search}%");
+                });
             })
-            ->orderBy('number')
-            ->paginate(10)
+            ->when($floorId !== null, function (Builder $query) use ($floorId): void {
+                $query->where('rooms.floor_id', $floorId);
+            })
+            ->orderBy($sortColumn, $direction)
+            ->when($sortColumn !== 'rooms.number', function (Builder $query): void {
+                $query->orderBy('rooms.number');
+            })
+            ->paginate($perPage)
             ->withQueryString()
             ->through(fn (Room $room): array => [
                 'id' => $room->id,
@@ -52,7 +73,13 @@ class RoomController extends Controller
         return Inertia::render('Manager/Rooms/Index', [
             'rooms' => $rooms,
             'floors' => $floors,
-            'filters' => ['search' => $search],
+            'filters' => [
+                'search' => $search,
+                'floor_id' => $floorId,
+                'sort' => $sort,
+                'direction' => $direction,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
@@ -109,5 +136,34 @@ class RoomController extends Controller
         }
 
         return $user->hasRole('Admin') || $room->created_by === $user->id;
+    }
+
+    private function resolveSortColumn(string $sort): string
+    {
+        return match ($sort) {
+            'capacity' => 'rooms.capacity',
+            'price' => 'rooms.price',
+            'floor' => 'floors.number',
+            'creator' => 'creators.name',
+            default => 'rooms.number',
+        };
+    }
+
+    private function resolveSortKey(string $sort): string
+    {
+        return in_array($sort, ['number', 'capacity', 'price', 'floor', 'creator'], true)
+            ? $sort
+            : 'number';
+    }
+
+    private function resolveFloorId(Request $request): ?int
+    {
+        if (! $request->filled('floor_id')) {
+            return null;
+        }
+
+        $floorId = filter_var($request->input('floor_id'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        return $floorId === false ? null : $floorId;
     }
 }

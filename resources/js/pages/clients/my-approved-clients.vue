@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 
 type PageProps = {
@@ -78,10 +79,18 @@ const normalizePaginationLabel = (label: string): string => {
 
             <div class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                 <div class="border-b border-sidebar-border/70 px-4 py-3 dark:border-sidebar-border">
-                    <h1 class="text-lg font-semibold">My Approved Clients</h1>
-                    <p class="text-sm text-muted-foreground">
-                        Clients that were approved by your account.
-                    </p>
+                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h1 class="text-lg font-semibold">My Approved Clients</h1>
+                            <p class="text-sm text-muted-foreground">
+                                Clients that were approved by your account.
+                            </p>
+                        </div>
+
+                        <Button as-child size="sm" type="button" variant="outline">
+                            <a href="/clients/my-approved/export">Export CSV</a>
+                        </Button>
+                    </div>
                 </div>
 
                 <div v-if="props.approvedClients.data.length === 0" class="px-4 py-10 text-center">
