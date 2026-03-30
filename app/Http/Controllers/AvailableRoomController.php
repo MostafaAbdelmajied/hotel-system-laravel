@@ -17,7 +17,7 @@ class AvailableRoomController extends Controller
             ->with('floor:id,name')
             ->availableBetween($validated['check_in'], $validated['check_out'])
             ->orderBy('number')
-            ->paginate(10)
+            ->paginate(9)
             ->withQueryString()
             ->through(fn (Room $room): array => [
                 'id' => $room->id,
