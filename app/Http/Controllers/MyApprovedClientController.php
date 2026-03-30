@@ -81,7 +81,7 @@ class MyApprovedClientController extends Controller
                 fn (Builder $query) => $query->where('approved_by', $user->id)
             )
             ->whereHas('roles', function (Builder $query): void {
-                $query->whereIn('name', ['Client', 'client']);
+                $query->where('name', 'Client');
             });
     }
 

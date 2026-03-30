@@ -33,6 +33,8 @@ class ReservationController extends Controller
     {
         $validated = $request->validated();
         $today = CarbonImmutable::today(config('app.timezone'))->toDateString();
+        $stripeConfigured = (string) config('services.stripe.key') !== ''
+            && (string) config('services.stripe.secret') !== '';
 
         if ($validated['check_in'] < $today) {
             throw ValidationException::withMessages([
@@ -59,6 +61,10 @@ class ReservationController extends Controller
             'payment' => [
                 'provider' => 'stripe',
                 'next_step' => 'create_checkout_session',
+                'is_configured' => $stripeConfigured,
+                'configuration_message' => $stripeConfigured
+                    ? null
+                    : 'Stripe is not configured yet. Please contact support.',
             ],
         ]);
     }

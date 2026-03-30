@@ -53,6 +53,19 @@ const mainNavItems = computed<NavItem[]>(() => {
             href: '/bookings/available-rooms',
             icon: CalendarDays,
         });
+        items.push({
+            title: 'My Reservations',
+            href: '/reservations/my',
+            icon: CalendarDays,
+        });
+    }
+
+    if (page.props.auth?.isReceptionist) {
+        items.push({
+            title: 'Clients Reservations',
+            href: '/reservations/clients',
+            icon: CalendarDays,
+        });
     }
 
     if (page.props.auth?.isManager || page.props.auth?.isAdmin) {
