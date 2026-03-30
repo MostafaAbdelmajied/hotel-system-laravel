@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,8 @@ type Props = {
     payment: {
         provider: string;
         next_step: string;
+        is_configured: boolean;
+        configuration_message: string | null;
     };
 };
 
@@ -143,6 +145,12 @@ function submit(): void {
                     This step validates your booking details, then proceeds to
                     {{ payment.provider }} checkout.
                 </p>
+                <div
+                    v-if="payment.configuration_message"
+                    class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                >
+                    {{ payment.configuration_message }}
+                </div>
                 <p v-if="paymentError" class="mt-3 text-sm text-red-600">
                     {{ paymentError }}
                 </p>
@@ -191,9 +199,14 @@ function submit(): void {
                     </div>
 
                     <div class="md:col-span-2">
-                        <Button :disabled="form.processing" type="submit">
+                        <Button
+                            :disabled="form.processing || !payment.is_configured"
+                            type="submit"
+                        >
                             {{
-                                form.processing
+                                !payment.is_configured
+                                    ? 'Stripe Not Configured'
+                                    : form.processing
                                     ? 'Preparing Payment...'
                                     : 'Continue to Payment'
                             }}
@@ -204,4 +217,3 @@ function submit(): void {
         </div>
     </AppLayout>
 </template>
-

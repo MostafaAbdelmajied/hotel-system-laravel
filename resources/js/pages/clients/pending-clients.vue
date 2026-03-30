@@ -87,10 +87,18 @@ const approveClient = (clientId: number): void => {
 
             <div class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                 <div class="border-b border-sidebar-border/70 px-4 py-3 dark:border-sidebar-border">
-                    <h1 class="text-lg font-semibold">Pending Clients</h1>
-                    <p class="text-sm text-muted-foreground">
-                        Review and approve client accounts that are waiting for approval.
-                    </p>
+                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h1 class="text-lg font-semibold">Pending Clients</h1>
+                            <p class="text-sm text-muted-foreground">
+                                Review and approve client accounts that are waiting for approval.
+                            </p>
+                        </div>
+
+                        <Button as-child size="sm" type="button" variant="outline">
+                            <a href="/clients/pending/export">Export CSV</a>
+                        </Button>
+                    </div>
                 </div>
 
                 <div v-if="props.pendingClients.data.length === 0" class="px-4 py-10 text-center">
