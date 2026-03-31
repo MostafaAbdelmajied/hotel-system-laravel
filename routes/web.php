@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AvailableRoomController;
 use App\Http\Controllers\ClientApprovalController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FloorController;
 use App\Http\Controllers\MyApprovedClientController;
 use App\Http\Controllers\MyReservationController;
@@ -19,7 +20,7 @@ Route::inertia('/', 'Welcome', [
 Route::post('stripe/webhook', [ReservationController::class, 'stripeWebhook'])->name('stripe.webhook');
 
 Route::middleware(['auth', 'approved', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('bookings/available-rooms', [AvailableRoomController::class, 'index'])->name('bookings.available-rooms');
     Route::get('reservations/rooms/{room}', [ReservationController::class, 'show'])->name('reservations.rooms.show');
     Route::post('reservations/rooms/{room}/start-payment', [ReservationController::class, 'startPayment'])->name('reservations.rooms.start-payment');
