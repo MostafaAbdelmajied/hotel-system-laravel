@@ -53,6 +53,11 @@ const mainNavItems = computed<NavItem[]>(() => {
             href: '/admin/managers',
             icon: UserCog,
         });
+        items.push({
+            title: 'Manage Receptionists',
+            href: '/admin/receptionists',
+            icon: Users,
+        });
     }
 
     if (page.props.auth?.canViewReservations) {
