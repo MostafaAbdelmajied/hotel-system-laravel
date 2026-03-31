@@ -34,20 +34,28 @@ class DashboardController extends Controller
         $today = CarbonImmutable::today(config('app.timezone'));
 
         $pendingClientsCount = User::query()
-            ->role('Client')
+            ->whereHas('roles', function ($query): void {
+                $query->where('name', 'Client');
+            })
             ->where('status', UserStatus::Pending->value)
             ->count();
 
         $totalClientsCount = User::query()
-            ->role('Client')
+            ->whereHas('roles', function ($query): void {
+                $query->where('name', 'Client');
+            })
             ->count();
 
         $totalManagersCount = User::query()
-            ->role('Manager')
+            ->whereHas('roles', function ($query): void {
+                $query->where('name', 'Manager');
+            })
             ->count();
 
         $totalReceptionistsCount = User::query()
-            ->role('Receptionist')
+            ->whereHas('roles', function ($query): void {
+                $query->where('name', 'Receptionist');
+            })
             ->count();
 
         $floorsCount = Floor::query()->count();
@@ -132,7 +140,9 @@ class DashboardController extends Controller
             });
 
         $approvalActivities = User::query()
-            ->role('Client')
+            ->whereHas('roles', function ($query): void {
+                $query->where('name', 'Client');
+            })
             ->where('status', UserStatus::Approved->value)
             ->whereNotNull('approved_at')
             ->with('approvedBy:id,name')
