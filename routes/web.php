@@ -52,6 +52,8 @@ Route::middleware(['auth', 'approved', 'verified', 'role:Admin'])
     ->name('admin.')
     ->group(function () {
         Route::resource('managers', ManagerController::class)->except(['show']);
+        Route::patch('receptionists/{receptionist}/toggle-status', [ReceptionistController::class, 'toggleStatus'])
+            ->name('receptionists.toggle-status');
         Route::resource('receptionists', ReceptionistController::class)->except(['show']);
     });
 
