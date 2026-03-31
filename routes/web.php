@@ -4,6 +4,7 @@ use App\Http\Controllers\AvailableRoomController;
 use App\Http\Controllers\ClientApprovalController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FloorController;
+use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\MyApprovedClientController;
 use App\Http\Controllers\MyReservationController;
 use App\Http\Controllers\PendingClientController;
@@ -44,4 +45,12 @@ Route::middleware(['auth', 'approved', 'verified', 'role:Manager|Admin'])
             ->except(['create', 'edit', 'show']);
         Route::resource('floors', FloorController::class)->except(['create', 'edit', 'show']);
     });
+
+Route::middleware(['auth', 'approved', 'verified', 'role:Admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('managers', ManagerController::class)->except(['show']);
+    });
+
 require __DIR__.'/settings.php';
