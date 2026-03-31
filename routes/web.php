@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminClientController;
 use App\Http\Controllers\AvailableRoomController;
 use App\Http\Controllers\ClientApprovalController;
 use App\Http\Controllers\DashboardController;
@@ -29,7 +30,9 @@ Route::middleware(['auth', 'approved', 'verified'])->group(function () {
     Route::get('reservations/payment/success', [ReservationController::class, 'paymentSuccess'])->name('reservations.payment.success');
     Route::get('reservations/payment/cancel', [ReservationController::class, 'paymentCancel'])->name('reservations.payment.cancel');
     Route::get('clients/pending', [PendingClientController::class, 'index'])->name('clients.pending');
+    Route::get('clients/pending/export', [PendingClientController::class, 'export'])->name('clients.pending.export');
     Route::get('clients/my-approved', [MyApprovedClientController::class, 'index'])->name('clients.my-approved');
+    Route::get('clients/my-approved/export', [MyApprovedClientController::class, 'export'])->name('clients.my-approved.export');
     Route::patch('clients/{client}/approve', [ClientApprovalController::class, 'update'])->name('clients.approve');
     Route::get('reservations/my', [MyReservationController::class, 'index'])
         ->middleware('role:Client')
@@ -51,6 +54,7 @@ Route::middleware(['auth', 'approved', 'verified', 'role:Admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        Route::get('clients', [AdminClientController::class, 'index'])->name('clients.index');
         Route::resource('managers', ManagerController::class)->except(['show']);
         Route::resource('receptionists', ReceptionistController::class)->except(['show']);
     });
