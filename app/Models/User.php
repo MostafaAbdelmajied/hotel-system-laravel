@@ -21,6 +21,7 @@ use Spatie\Permission\Traits\HasRoles;
     'email',
     'mobile_number',
     'password',
+    'last_login',
     'country',
     'gender',
     'avatar',
@@ -43,6 +44,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'gender' => Gender::class,

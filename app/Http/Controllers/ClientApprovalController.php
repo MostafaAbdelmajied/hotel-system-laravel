@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Enums\UserStatus;
 use App\Events\ClientApproved;
 use App\Models\User;
-use App\Notifications\AccountApprovedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -15,11 +14,20 @@ class ClientApprovalController extends Controller
     {
         $this->authorize('approveClient', $client);
 
-        $client->update([
-            'status' => UserStatus::Approved,
-            'approved_by' => $request->user()->id,
-            'approved_at' => now(),
-        ]);
+        $updated = User::query()
+            ->whereKey($client->id)
+            ->where('status', UserStatus::Pending)
+            ->update([
+                'status' => UserStatus::Approved,
+                'approved_by' => $request->user()->id,
+                'approved_at' => now(),
+            ]);
+
+        if ($updated === 0) {
+            return back()->with('warning', 'Client has already been approved.');
+        }
+
+        $client->refresh();
 
         event(new ClientApproved($client));
 

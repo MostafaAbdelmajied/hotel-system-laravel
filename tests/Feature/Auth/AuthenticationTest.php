@@ -160,3 +160,19 @@ test('authenticated pending non-client users can access protected routes', funct
     $response->assertOk();
     $this->assertAuthenticatedAs($user);
 });
+
+test('successful login updates user last login timestamp', function () {
+    $user = User::factory()->create([
+        'status' => UserStatus::Approved,
+        'last_login' => null,
+    ]);
+
+    $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    $user->refresh();
+
+    expect($user->last_login)->not->toBeNull();
+});
