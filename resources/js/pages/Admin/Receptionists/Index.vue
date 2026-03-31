@@ -1,6 +1,7 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, ref } from 'vue';
+import { toggleStatus as toggleStatusAction } from '@/actions/App/Http/Controllers/ReceptionistController';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -10,7 +11,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
+    DialogTrigger
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +26,7 @@ type ReceptionistRecord = {
     gender: string | null;
     avatar: string | null;
     created_at: string;
+    is_banned: boolean;
 };
 
 type PaginatedReceptionists = {
@@ -93,15 +95,19 @@ function normalizePaginationLabel(label: string): string {
 }
 
 function fetchReceptionists(pageNumber = 1): void {
-    router.get(receptionistsIndexPath, {
-        search: search.value || undefined,
-        page: pageNumber,
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-        replace: true,
-        only: ['receptionists', 'filters'],
-    });
+    router.get(
+        receptionistsIndexPath,
+        {
+            search: search.value || undefined,
+            page: pageNumber,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            only: ['receptionists', 'filters'],
+        },
+    );
 }
 
 function queueSearch(): void {
@@ -115,9 +121,22 @@ function queueSearch(): void {
 }
 
 function visitPage(url: string): void {
-    const pageNumber = Number(new URL(url, window.location.origin).searchParams.get('page') ?? 1);
+    const pageNumber = Number(
+        new URL(url, window.location.origin).searchParams.get('page') ?? 1,
+    );
 
     fetchReceptionists(pageNumber);
+}
+
+function toggleStatus(receptionist: ReceptionistRecord): void {
+    const action = toggleStatusAction(receptionist.id);
+    router.patch(
+        action.url,
+        {},
+        {
+            preserveScroll: true,
+        },
+    );
 }
 
 function deleteReceptionist(): void {
@@ -159,10 +178,16 @@ onBeforeUnmount(() => {
                 {{ flashError }}
             </div>
 
-            <div class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                <div class="flex flex-col gap-4 border-b border-sidebar-border/70 px-4 py-4 md:flex-row md:items-end md:justify-between dark:border-sidebar-border">
+            <div
+                class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            >
+                <div
+                    class="flex flex-col gap-4 border-b border-sidebar-border/70 px-4 py-4 md:flex-row md:items-end md:justify-between dark:border-sidebar-border"
+                >
                     <div>
-                        <h1 class="text-lg font-semibold">Manage Receptionists</h1>
+                        <h1 class="text-lg font-semibold">
+                            Manage Receptionists
+                        </h1>
                         <p class="text-sm text-muted-foreground">
                             Create, update, and remove receptionist accounts.
                         </p>
@@ -170,7 +195,9 @@ onBeforeUnmount(() => {
 
                     <div class="flex flex-col gap-3 md:flex-row md:items-end">
                         <div class="w-full md:w-72">
-                            <Label for="receptionist-search">Search by name or email</Label>
+                            <Label for="receptionist-search"
+                                >Search by name or email</Label
+                            >
                             <Input
                                 id="receptionist-search"
                                 v-model="search"
@@ -188,45 +215,99 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <div v-if="props.receptionists.data.length === 0" class="px-4 py-10 text-center">
-                    <p class="text-sm text-muted-foreground">No receptionists found.</p>
+                <div
+                    v-if="props.receptionists.data.length === 0"
+                    class="px-4 py-10 text-center"
+                >
+                    <p class="text-sm text-muted-foreground">
+                        No receptionists found.
+                    </p>
                 </div>
 
                 <div v-else class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-sidebar-border/70 text-sm dark:divide-sidebar-border">
+                    <table
+                        class="min-w-full divide-y divide-sidebar-border/70 text-sm dark:divide-sidebar-border"
+                    >
                         <thead>
                             <tr class="bg-muted/40 text-left">
                                 <th class="px-4 py-3 font-medium">Name</th>
                                 <th class="px-4 py-3 font-medium">Email</th>
                                 <th class="px-4 py-3 font-medium">Country</th>
                                 <th class="px-4 py-3 font-medium">Gender</th>
-                                <th class="px-4 py-3 font-medium">Created At</th>
-                                <th class="px-4 py-3 font-medium text-right">Actions</th>
+                                <th class="px-4 py-3 font-medium">
+                                    Created At
+                                </th>
+                                <th class="px-4 py-3 text-right font-medium">
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
 
-                        <tbody class="divide-y divide-sidebar-border/70 dark:divide-sidebar-border">
-                            <tr v-for="receptionist in props.receptionists.data" :key="receptionist.id">
-                                <td class="px-4 py-3 font-medium text-foreground">{{ receptionist.name }}</td>
-                                <td class="px-4 py-3">{{ receptionist.email }}</td>
-                                <td class="px-4 py-3">{{ receptionist.country ?? 'N/A' }}</td>
-                                <td class="px-4 py-3">{{ formatGender(receptionist.gender) }}</td>
-                                <td class="px-4 py-3">{{ formatDate(receptionist.created_at) }}</td>
+                        <tbody
+                            class="divide-y divide-sidebar-border/70 dark:divide-sidebar-border"
+                        >
+                            <tr
+                                v-for="receptionist in props.receptionists.data"
+                                :key="receptionist.id"
+                            >
+                                <td
+                                    class="px-4 py-3 font-medium text-foreground"
+                                >
+                                    {{ receptionist.name }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {{ receptionist.email }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {{ receptionist.country ?? 'N/A' }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {{ formatGender(receptionist.gender) }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {{ formatDate(receptionist.created_at) }}
+                                </td>
                                 <td class="px-4 py-3">
                                     <div class="flex justify-end gap-2">
-                                        <Button as-child size="sm" type="button" variant="outline">
-                                            <Link :href="`${receptionistsIndexPath}/${receptionist.id}/edit`">
+                                        <Button
+                                            as-child
+                                            size="sm"
+                                            type="button"
+                                            variant="outline"
+                                        >
+                                            <Link
+                                                :href="`${receptionistsIndexPath}/${receptionist.id}/edit`"
+                                            >
                                                 Edit
                                             </Link>
                                         </Button>
-
+                                        <Button
+                                            :class="[
+                                                receptionist.is_banned
+                                                    ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700'
+                                                    : 'border-red-600 text-red-600 hover:bg-red-100 hover:text-red-700',
+                                            ]"
+                                            size="sm"
+                                            type="button"
+                                            variant="outline"
+                                            @click="toggleStatus(receptionist)"
+                                        >
+                                            {{
+                                                receptionist.is_banned
+                                                    ? 'Unban'
+                                                    : 'Ban'
+                                            }}
+                                        </Button>
                                         <Dialog>
                                             <DialogTrigger as-child>
                                                 <Button
                                                     size="sm"
                                                     type="button"
                                                     variant="destructive"
-                                                    @click="deletingReceptionist = receptionist"
+                                                    @click="
+                                                        deletingReceptionist =
+                                                            receptionist
+                                                    "
                                                 >
                                                     Delete
                                                 </Button>
@@ -234,21 +315,35 @@ onBeforeUnmount(() => {
 
                                             <DialogContent>
                                                 <DialogHeader class="space-y-3">
-                                                    <DialogTitle>Delete Receptionist</DialogTitle>
+                                                    <DialogTitle
+                                                        >Delete
+                                                        Receptionist</DialogTitle
+                                                    >
                                                     <DialogDescription>
-                                                        Are you sure you want to delete
-                                                        {{ deletingReceptionist?.name }}?
-                                                        This action cannot be undone.
+                                                        Are you sure you want to
+                                                        delete
+                                                        {{
+                                                            deletingReceptionist?.name
+                                                        }}? This action cannot
+                                                        be undone.
                                                     </DialogDescription>
                                                 </DialogHeader>
 
                                                 <DialogFooter class="gap-2">
                                                     <DialogClose as-child>
-                                                        <Button variant="outline">
+                                                        <Button
+                                                            variant="outline"
+                                                        >
                                                             Cancel
                                                         </Button>
                                                     </DialogClose>
-                                                    <Button type="button" variant="destructive" @click="deleteReceptionist">
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        @click="
+                                                            deleteReceptionist
+                                                        "
+                                                    >
                                                         Delete Receptionist
                                                     </Button>
                                                 </DialogFooter>
@@ -273,23 +368,36 @@ onBeforeUnmount(() => {
 
                     <div class="flex flex-wrap items-center gap-2">
                         <template
-                            v-for="(paginationLink, index) in props.receptionists.links"
+                            v-for="(paginationLink, index) in props
+                                .receptionists.links"
                             :key="`${index}-${paginationLink.label}`"
                         >
                             <span
                                 v-if="!paginationLink.url"
                                 class="rounded-md border px-3 py-1.5 text-xs text-muted-foreground"
                             >
-                                {{ normalizePaginationLabel(paginationLink.label) }}
+                                {{
+                                    normalizePaginationLabel(
+                                        paginationLink.label,
+                                    )
+                                }}
                             </span>
                             <button
                                 v-else
-                                :class="paginationLink.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
+                                :class="
+                                    paginationLink.active
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'hover:bg-muted'
+                                "
                                 class="rounded-md border px-3 py-1.5 text-xs"
                                 type="button"
                                 @click="visitPage(paginationLink.url)"
                             >
-                                {{ normalizePaginationLabel(paginationLink.label) }}
+                                {{
+                                    normalizePaginationLabel(
+                                        paginationLink.label,
+                                    )
+                                }}
                             </button>
                         </template>
                     </div>
