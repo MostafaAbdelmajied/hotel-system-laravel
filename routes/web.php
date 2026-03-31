@@ -12,6 +12,7 @@ use App\Http\Controllers\ReceptionistClientReservationController;
 use App\Http\Controllers\ReceptionistController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\StatisticsController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -42,6 +43,7 @@ Route::middleware(['auth', 'approved', 'verified', 'role:Manager|Admin'])
     ->prefix('manager')
     ->name('manager.')
     ->group(function () {
+        Route::get('statistics', StatisticsController::class)->name('statistics');
         Route::resource('rooms', RoomController::class)
             ->except(['create', 'edit', 'show']);
         Route::resource('floors', FloorController::class)->except(['create', 'edit', 'show']);
@@ -57,4 +59,4 @@ Route::middleware(['auth', 'approved', 'verified', 'role:Admin'])
         Route::resource('receptionists', ReceptionistController::class)->except(['show']);
     });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

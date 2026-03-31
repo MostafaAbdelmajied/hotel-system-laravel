@@ -1,6 +1,17 @@
 <script lang="ts" setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, CalendarDays, DoorOpen, FolderGit2, Layers, LayoutGrid, UserCheck, UserCog, Users } from 'lucide-vue-next';
+import {
+    BookOpen,
+    CalendarDays,
+    ChartAreaIcon,
+    DoorOpen,
+    FolderGit2,
+    Layers,
+    LayoutGrid,
+    UserCheck,
+    UserCog,
+    Users,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -13,9 +24,10 @@ import {
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem
+    SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import manager from '@/routes/manager';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -29,7 +41,15 @@ const mainNavItems = computed<NavItem[]>(() => {
         },
     ];
 
-    if (page.props.auth?.canViewPendingClients) {
+    if (page.props.auth?.isManager || page.props.auth?.isAdmin) {
+        items.push({
+            title: 'Statistics',
+            href: manager.statistics(),
+            icon: ChartAreaIcon,
+        });
+    }
+
+    if (page.props.auth.canViewPendingClients) {
         items.push({
             title: 'Pending Clients',
             href: '/clients/pending',
