@@ -29,7 +29,7 @@ const mainNavItems = computed<NavItem[]>(() => {
         },
     ];
 
-    if (page.props.auth?.canViewPendingClients) {
+    if (page.props.auth?.canViewPendingClients && !page.props.auth?.isAdmin) {
         items.push({
             title: 'Pending Clients',
             href: '/clients/pending',
@@ -37,11 +37,9 @@ const mainNavItems = computed<NavItem[]>(() => {
         });
     }
 
-    if (page.props.auth?.canViewMyApprovedClients) {
+    if (page.props.auth?.canViewMyApprovedClients && !page.props.auth?.isAdmin) {
         items.push({
-            title: page.props.auth?.isAdmin
-                ? 'Approved Clients'
-                : 'My Approved Clients',
+            title: 'My Approved Clients',
             href: '/clients/my-approved',
             icon: UserCheck,
         });
@@ -56,6 +54,11 @@ const mainNavItems = computed<NavItem[]>(() => {
         items.push({
             title: 'Manage Receptionists',
             href: '/admin/receptionists',
+            icon: Users,
+        });
+        items.push({
+            title: 'Manage Clients',
+            href: '/admin/clients',
             icon: Users,
         });
     }

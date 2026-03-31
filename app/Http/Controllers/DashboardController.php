@@ -80,8 +80,6 @@ class DashboardController extends Controller
             'pending_actions' => [
                 'pending_clients' => [
                     'count' => $pendingClientsCount,
-                    'label' => 'Pending Clients',
-                    'description' => 'Clients waiting approval',
                     'href' => route('clients.pending'),
                 ],
             ],
@@ -95,18 +93,6 @@ class DashboardController extends Controller
                 'available_rooms' => $availableRoomsCount,
                 'total_rooms' => $roomsCount,
                 'total_floors' => $floorsCount,
-            ],
-            'quick_actions' => [
-                [
-                    'label' => '+ Create Manager',
-                    'enabled' => false,
-                    'href' => null,
-                ],
-                [
-                    'label' => '+ Create Receptionist',
-                    'enabled' => false,
-                    'href' => null,
-                ],
             ],
             'recent_activity' => $this->recentAdminActivities(),
         ];
@@ -128,6 +114,7 @@ class DashboardController extends Controller
                 $roomNumber = $reservation->room?->number ?? 'N/A';
 
                 return [
+                    'id' => "reservation-{$reservation->id}",
                     'user' => $reservation->user?->name ?? 'Unknown user',
                     'action' => $isCancelled
                         ? "Cancelled reservation for room {$roomNumber}"
@@ -153,6 +140,7 @@ class DashboardController extends Controller
                 $approverName = $client->approvedBy?->name;
 
                 return [
+                    'id' => "approval-{$client->id}",
                     'user' => $client->name,
                     'action' => $approverName !== null
                         ? "Approved by {$approverName}"
@@ -170,6 +158,7 @@ class DashboardController extends Controller
             ->take(6)
             ->values()
             ->map(fn (array $activity): array => [
+                'id' => $activity['id'],
                 'user' => $activity['user'],
                 'action' => $activity['action'],
                 'time' => $activity['time'],
@@ -177,40 +166,5 @@ class DashboardController extends Controller
                 'positive' => $activity['positive'],
             ])
             ->all();
-    }
-
-    private function formatCurrency(int $amountInCents): string
-    {
-        return '$'.number_format($amountInCents / 100, 2);
-    }
-
-    private function formatTrend(int $currentValue, int $previousValue): string
-    {
-        if ($previousValue === 0) {
-            return $currentValue > 0 ? '+100.0%' : '0.0%';
-        }
-
-        $percentage = (($currentValue - $previousValue) / $previousValue) * 100;
-
-        return sprintf('%+.1f%%', $percentage);
-    }
-
-    private function formatTrendSentence(int $currentValue, int $previousValue): string
-    {
-        if ($previousValue === 0) {
-            return $currentValue > 0
-                ? 'Revenue started moving this month.'
-                : 'No revenue recorded yet.';
-        }
-
-        $difference = $currentValue - $previousValue;
-
-        if ($difference === 0) {
-            return 'Revenue matches last month.';
-        }
-
-        return $difference > 0
-            ? 'Revenue is up from last month.'
-            : 'Revenue is below last month.';
     }
 }
