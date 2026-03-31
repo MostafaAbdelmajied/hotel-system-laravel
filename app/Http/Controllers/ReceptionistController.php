@@ -19,8 +19,6 @@ class ReceptionistController extends Controller
 {
     public function index(Request $request): Response
     {
-        abort_unless($request->user()?->hasRole('Admin'), 403);
-
         $search = trim((string) $request->input('search', ''));
 
         $receptionists = User::query()
@@ -56,8 +54,31 @@ class ReceptionistController extends Controller
 
         return Inertia::render('Admin/Receptionists/Index', [
             'receptionists' => $receptionists,
-            'countries' => cachedCountries(),
             'filters' => ['search' => $search],
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Receptionists/Create', [
+            'countries' => cachedCountries(),
+        ]);
+    }
+
+    public function edit(User $receptionist): Response
+    {
+        abort_unless($receptionist->hasRole('Receptionist'), 404);
+
+        return Inertia::render('Admin/Receptionists/Edit', [
+            'receptionist' => [
+                'id' => $receptionist->id,
+                'name' => $receptionist->name,
+                'email' => $receptionist->email,
+                'country' => $receptionist->country,
+                'gender' => $receptionist->gender?->value,
+                'avatar' => $receptionist->avatar,
+            ],
+            'countries' => cachedCountries(),
         ]);
     }
 
@@ -108,12 +129,9 @@ class ReceptionistController extends Controller
         return back()->with('success', 'Receptionist updated successfully.');
     }
 
-    public function destroy(Request $request, User $receptionist): RedirectResponse
+    public function destroy(User $receptionist): RedirectResponse
     {
-        abort_unless(
-            $request->user()?->hasRole('Admin') && $receptionist->hasRole('Receptionist'),
-            403
-        );
+        abort_unless($receptionist->hasRole('Receptionist'), 404);
 
         if ($receptionist->avatar !== null && $receptionist->avatar !== 'default.png') {
             Storage::disk('public')->delete($receptionist->avatar);

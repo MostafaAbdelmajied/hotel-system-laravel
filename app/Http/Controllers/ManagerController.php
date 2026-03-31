@@ -6,6 +6,7 @@ use App\Enums\UserStatus;
 use App\Http\Requests\StoreManagerRequest;
 use App\Http\Requests\UpdateManagerRequest;
 use App\Models\User;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,15 +22,18 @@ class ManagerController extends Controller
     {
         $search = trim((string) $request->input('search', ''));
 
-        $managers = User::query()
-            ->role('Manager')
-            ->when($search !== '', function (Builder $query) use ($search): void {
-                $query->where(function (Builder $query) use ($search): void {
-                    $query
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
+        $managersQuery = User::query()
+            ->role('Manager');
+
+        if ($search !== '') {
+            $managersQuery->where(function (Builder $query) use ($search): void {
+                $query
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $managers = $managersQuery
             ->select([
                 'id',
                 'name',
@@ -42,20 +46,28 @@ class ManagerController extends Controller
             ->latest()
             ->paginate(10)
             ->withQueryString()
-            ->through(fn (User $manager): array => [
-                'id' => $manager->id,
-                'name' => $manager->name,
-                'email' => $manager->email,
-                'country' => $manager->country,
-                'gender' => $manager->gender?->value,
-                'avatar' => $manager->avatar,
-                'created_at' => $manager->created_at,
-            ]);
+            ->through(fn (User $manager): array => $this->serializeManager($manager, true));
 
         return Inertia::render('Admin/Managers/Index', [
             'managers' => $managers,
-            'countries' => cachedCountries(),
             'filters' => ['search' => $search],
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Managers/Create', [
+            'countries' => cachedCountries(),
+        ]);
+    }
+
+    public function edit(User $manager): Response
+    {
+        abort_unless($manager->hasRole('Manager'), 404);
+
+        return Inertia::render('Admin/Managers/Edit', [
+            'manager' => $this->serializeManager($manager),
+            'countries' => cachedCountries(),
         ]);
     }
 
@@ -75,7 +87,7 @@ class ManagerController extends Controller
                 'gender' => $validated['gender'],
                 'avatar' => $this->storeAvatar($request->file('avatar')),
                 'status' => UserStatus::Approved,
-                'approved_by' => $user->id,
+                'approved_by' => $user->getKey(),
                 'approved_at' => now(),
             ]);
 
@@ -94,14 +106,15 @@ class ManagerController extends Controller
             'email' => $validated['email'],
             'country' => $validated['country'],
             'gender' => $validated['gender'],
-            'avatar' => $this->replaceAvatar($manager, $request->file('avatar')) ?? $manager->avatar,
+            'avatar' => $this->replaceAvatar($manager, $request->file('avatar')) ?? $this->nullableString($manager->getAttribute('avatar')),
         ];
 
         if (filled($validated['password'] ?? null)) {
             $payload['password'] = $validated['password'];
         }
 
-        $manager->update($payload);
+        $manager->fill($payload);
+        $manager->save();
 
         return back()->with('success', 'Manager updated successfully.');
     }
@@ -113,11 +126,13 @@ class ManagerController extends Controller
             403
         );
 
-        if ($manager->avatar !== null && $manager->avatar !== 'default.png') {
-            Storage::disk('public')->delete($manager->avatar);
+        $avatar = $this->nullableString($manager->getAttribute('avatar'));
+
+        if ($avatar !== null && $avatar !== 'default.png') {
+            Storage::disk('public')->delete($avatar);
         }
 
-        $manager->delete();
+        User::destroy($manager->getKey());
 
         return back()->with('success', 'Manager deleted successfully.');
     }
@@ -137,10 +152,47 @@ class ManagerController extends Controller
             return null;
         }
 
-        if ($manager->avatar !== null && $manager->avatar !== 'default.png') {
-            Storage::disk('public')->delete($manager->avatar);
+        $currentAvatar = $this->nullableString($manager->getAttribute('avatar'));
+
+        if ($currentAvatar !== null && $currentAvatar !== 'default.png') {
+            Storage::disk('public')->delete($currentAvatar);
         }
 
         return $avatar->store('avatars', 'public');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeManager(User $manager, bool $includeCreatedAt = false): array
+    {
+        $payload = [
+            'id' => $manager->getKey(),
+            'name' => (string) $manager->getAttribute('name'),
+            'email' => (string) $manager->getAttribute('email'),
+            'country' => $this->nullableString($manager->getAttribute('country')),
+            'gender' => $this->enumValue($manager->getAttribute('gender')),
+            'avatar' => $this->nullableString($manager->getAttribute('avatar')),
+        ];
+
+        if ($includeCreatedAt) {
+            $payload['created_at'] = $manager->getAttribute('created_at');
+        }
+
+        return $payload;
+    }
+
+    private function nullableString(mixed $value): ?string
+    {
+        return is_string($value) ? $value : null;
+    }
+
+    private function enumValue(mixed $value): ?string
+    {
+        if ($value instanceof BackedEnum) {
+            return is_string($value->value) ? $value->value : null;
+        }
+
+        return is_string($value) ? $value : null;
     }
 }
