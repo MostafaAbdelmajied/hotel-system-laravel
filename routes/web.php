@@ -9,6 +9,7 @@ use App\Http\Controllers\MyApprovedClientController;
 use App\Http\Controllers\MyReservationController;
 use App\Http\Controllers\PendingClientController;
 use App\Http\Controllers\ReceptionistClientReservationController;
+use App\Http\Controllers\ReceptionistController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'approved', 'verified', 'role:Admin'])
     ->name('admin.')
     ->group(function () {
         Route::resource('managers', ManagerController::class)->except(['show']);
+        Route::resource('receptionists', ReceptionistController::class)->except(['show']);
     });
 
 require __DIR__.'/settings.php';
