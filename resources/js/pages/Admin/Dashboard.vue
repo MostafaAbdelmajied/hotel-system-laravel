@@ -27,6 +27,7 @@ type PageProps = {
 };
 
 type RecentActivity = {
+    id: string;
     user: string;
     action: string;
     time: string;
@@ -38,8 +39,6 @@ type DashboardData = {
     pending_actions: {
         pending_clients: {
             count: number;
-            label: string;
-            description: string;
             href: NonNullable<InertiaLinkProps['href']>;
         };
     };
@@ -54,11 +53,6 @@ type DashboardData = {
         total_rooms: number;
         total_floors: number;
     };
-    quick_actions: Array<{
-        label: string;
-        enabled: boolean;
-        href: NonNullable<InertiaLinkProps['href']> | null;
-    }>;
     recent_activity: RecentActivity[];
 };
 
@@ -146,6 +140,8 @@ const pendingClientsRoute = clientRoutes.pending();
 const approvedClientsRoute = clientRoutes.myApproved();
 const floorsRoute = managerFloorRoutes.index();
 const roomsRoute = managerRoomRoutes.index();
+const managersRoute = '/admin/managers';
+const receptionistsRoute = '/admin/receptionists';
 
 const toneMap = {
     emerald: 'text-emerald-600 dark:text-emerald-400',
@@ -356,6 +352,22 @@ const navigationTiles = computed<NavigationTile[]>(() => {
             icon: DoorOpen,
             toneClass: toneMap.emerald,
             panelClass: 'from-emerald-500/12 via-background/70 to-background/50',
+        },
+        {
+            label: 'Manage Managers',
+            description: 'Open manager accounts.',
+            href: managersRoute,
+            icon: ShieldCheck,
+            toneClass: toneMap.blue,
+            panelClass: 'from-primary/10 via-background/70 to-background/50',
+        },
+        {
+            label: 'Manage Receptionists',
+            description: 'Open receptionist accounts.',
+            href: receptionistsRoute,
+            icon: Users,
+            toneClass: toneMap.emerald,
+            panelClass: 'from-emerald-500/10 via-background/70 to-background/50',
         },
     ];
 });
@@ -568,7 +580,7 @@ const operationsChartItems = computed<OperationsChartItem[]>(() => {
                                 <p class="mt-1 text-sm text-foreground">Open the main admin pages.</p>
                             </div>
                         </div>
-                        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             <Link
                                 v-for="item in navigationTiles"
                                 :key="item.label"
@@ -804,7 +816,7 @@ const operationsChartItems = computed<OperationsChartItem[]>(() => {
                         <div class="space-y-6" v-if="recentActivities.length > 0">
                             <div
                                 v-for="(activity, index) in recentActivities"
-                                :key="`${activity.user}-${activity.time}`"
+                                :key="activity.id"
                                 class="group relative flex items-start rounded-2xl px-2 py-1 transition-colors hover:bg-muted/20"
                             >
                                 <div
