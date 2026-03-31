@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, CalendarDays, DoorOpen, FolderGit2, Layers, LayoutGrid, UserCheck, Users } from 'lucide-vue-next';
+import { BookOpen, CalendarDays, DoorOpen, FolderGit2, Layers, LayoutGrid, UserCheck, UserCog, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -44,6 +44,14 @@ const mainNavItems = computed<NavItem[]>(() => {
                 : 'My Approved Clients',
             href: '/clients/my-approved',
             icon: UserCheck,
+        });
+    }
+
+    if (page.props.auth?.isAdmin) {
+        items.push({
+            title: 'Manage Managers',
+            href: '/admin/managers',
+            icon: UserCog,
         });
     }
 
