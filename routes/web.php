@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\AvailableRoomController;
 use App\Http\Controllers\ClientApprovalController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FloorController;
+use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\MyApprovedClientController;
 use App\Http\Controllers\MyReservationController;
 use App\Http\Controllers\PendingClientController;
 use App\Http\Controllers\ReceptionistClientReservationController;
+use App\Http\Controllers\ReceptionistController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
@@ -19,7 +22,7 @@ Route::inertia('/', 'Welcome', [
 Route::post('stripe/webhook', [ReservationController::class, 'stripeWebhook'])->name('stripe.webhook');
 
 Route::middleware(['auth', 'approved', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('bookings/available-rooms', [AvailableRoomController::class, 'index'])->name('bookings.available-rooms');
     Route::get('reservations/rooms/{room}', [ReservationController::class, 'show'])->name('reservations.rooms.show');
     Route::post('reservations/rooms/{room}/start-payment', [ReservationController::class, 'startPayment'])->name('reservations.rooms.start-payment');
@@ -43,4 +46,13 @@ Route::middleware(['auth', 'approved', 'verified', 'role:Manager|Admin'])
             ->except(['create', 'edit', 'show']);
         Route::resource('floors', FloorController::class)->except(['create', 'edit', 'show']);
     });
+
+Route::middleware(['auth', 'approved', 'verified', 'role:Admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('managers', ManagerController::class)->except(['show']);
+        Route::resource('receptionists', ReceptionistController::class)->except(['show']);
+    });
+
 require __DIR__.'/settings.php';
