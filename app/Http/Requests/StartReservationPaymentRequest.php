@@ -44,6 +44,10 @@ class StartReservationPaymentRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
             $roomId = (int) $this->input('room_id');
             $room = Room::query()->find($roomId);
 

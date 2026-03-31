@@ -51,6 +51,7 @@ class Reservation extends Model
     public function scopeOverlapping(Builder $query, string $checkIn, string $checkOut): Builder
     {
         return $query
+            ->where('status', '!=', ReservationStatus::CANCELLED->value)
             ->whereDate('check_in', '<', $checkOut)
             ->whereDate('check_out', '>', $checkIn);
     }

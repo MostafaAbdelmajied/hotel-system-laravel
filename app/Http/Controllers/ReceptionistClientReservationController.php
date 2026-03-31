@@ -14,6 +14,8 @@ class ReceptionistClientReservationController extends Controller
 {
     public function index(Request $request): Response
     {
+        $this->authorize('viewAssignedClientReservations', Reservation::class);
+
         /** @var User $user */
         $user = $request->user();
 

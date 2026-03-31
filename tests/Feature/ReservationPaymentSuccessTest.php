@@ -88,6 +88,54 @@ it('shows confirmed message on payment success when webhook already created rese
     expect(Reservation::query()->where('stripe_checkout_session_id', 'cs_test_paid_done')->count())->toBe(1);
 });
 
+it('forbids non-client users from confirming payment success', function () {
+    $adminRole = Role::findOrCreate('Admin');
+    $admin = User::factory()->create([
+        'status' => UserStatus::Approved,
+    ]);
+    $admin->assignRole($adminRole);
+
+    $this->actingAs($admin)
+        ->get(route('reservations.payment.success', ['session_id' => 'cs_forbidden']))
+        ->assertForbidden();
+});
+
+it('does not allow client to confirm another client paid session', function () {
+    $owner = createApprovedClientForPaymentSuccessTest();
+    $otherClient = createApprovedClientForPaymentSuccessTest();
+    $room = createRoomForClientForPaymentSuccessTest($owner, 32000, 3);
+
+    $checkIn = now()->addDays(6)->toDateString();
+    $checkOut = now()->addDays(8)->toDateString();
+
+    $stripeService = Mockery::mock(StripeCheckoutService::class);
+    $stripeService
+        ->shouldReceive('retrieveCheckoutSession')
+        ->once()
+        ->with('cs_test_foreign_owner')
+        ->andReturn((object) [
+            'id' => 'cs_test_foreign_owner',
+            'payment_status' => 'paid',
+            'metadata' => [
+                'user_id' => (string) $owner->id,
+                'room_id' => (string) $room->id,
+                'accompany_number' => '1',
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'paid_price_snapshot_cents' => '32000',
+            ],
+        ]);
+
+    $this->app->instance(StripeCheckoutService::class, $stripeService);
+
+    $this->actingAs($otherClient)
+        ->get(route('reservations.payment.success', ['session_id' => 'cs_test_foreign_owner']))
+        ->assertRedirect(route('dashboard'))
+        ->assertSessionHasErrors(['payment']);
+
+    expect(Reservation::query()->where('stripe_checkout_session_id', 'cs_test_foreign_owner')->exists())->toBeFalse();
+});
+
 function createApprovedClientForPaymentSuccessTest(): User
 {
     $clientRole = Role::findOrCreate('Client');

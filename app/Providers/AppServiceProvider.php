@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Listeners\UpdateLastLoginAt;
 use App\Models\Floor;
+use App\Models\Reservation;
 use App\Models\User;
 use App\Policies\FloorPolicy;
+use App\Policies\ReservationPolicy;
 use App\Policies\UserPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
@@ -65,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureAuthorization(): void
     {
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Reservation::class, ReservationPolicy::class);
     }
 
     protected function configureEventListeners(): void

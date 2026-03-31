@@ -102,6 +102,43 @@ it('is idempotent when Stripe retries the same webhook event', function () {
     expect(Reservation::query()->where('stripe_checkout_session_id', 'cs_webhook_test_002')->count())->toBe(1);
 });
 
+it('does not create reservation from webhook when guests exceed room capacity', function () {
+    config(['services.stripe.webhook_secret' => 'whsec_test_123']);
+
+    $client = createApprovedClientForWebhookTest();
+    $room = createRoomForWebhookTest($client, 27000, 2);
+
+    $checkIn = now()->addDays(4)->toDateString();
+    $checkOut = now()->addDays(7)->toDateString();
+
+    $payload = json_encode([
+        'id' => 'evt_test_003',
+        'object' => 'event',
+        'type' => 'checkout.session.completed',
+        'data' => [
+            'object' => [
+                'id' => 'cs_webhook_test_003',
+                'object' => 'checkout.session',
+                'payment_status' => 'paid',
+                'metadata' => [
+                    'user_id' => (string) $client->id,
+                    'room_id' => (string) $room->id,
+                    'accompany_number' => '2',
+                    'check_in' => $checkIn,
+                    'check_out' => $checkOut,
+                    'paid_price_snapshot_cents' => '27000',
+                ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+
+    $this->withHeaders([
+        'Content-Type' => 'application/json',
+    ])->call('POST', route('stripe.webhook'), [], [], [], [], $payload)->assertOk();
+
+    expect(Reservation::query()->where('stripe_checkout_session_id', 'cs_webhook_test_003')->exists())->toBeFalse();
+});
+
 function createApprovedClientForWebhookTest(): User
 {
     $clientRole = Role::findOrCreate('Client');
