@@ -16,11 +16,10 @@ class Reservation extends Model
         'user_id',
         'room_id',
         'accompany_number',
-        'paid_price',
+        'total_price',
         'check_in',
         'check_out',
         'status',
-        'stripe_checkout_session_id',
     ];
 
     protected $casts = [
@@ -54,5 +53,15 @@ class Reservation extends Model
             ->where('status', '!=', ReservationStatus::CANCELLED->value)
             ->whereDate('check_in', '<', $checkOut)
             ->whereDate('check_out', '>', $checkIn);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function is_expired(): bool
+    {
+        return $this->status == ReservationStatus::PENDING && $this->created_at->addMinutes(10)->isPast();
     }
 }

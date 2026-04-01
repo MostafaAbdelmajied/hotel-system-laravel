@@ -28,5 +28,11 @@ class UserSeeder extends Seeder
                     $user->assignRole($role->name);
                 });
         }
+
+        User::role('Client')->first()->update([
+            'status' => UserStatus::Approved,
+            'approved_by' => User::role('Admin')->first()->id,
+            'approved_at' => now(),
+        ]);
     }
 }
