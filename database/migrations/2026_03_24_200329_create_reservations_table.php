@@ -14,12 +14,12 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('room_id')->constrained('rooms')->restrictOnDelete();
             $table->integer('accompany_number');
             $table->date('check_in');
             $table->date('check_out');
-            $table->bigInteger('price')->unsigned();
+            $table->integer('total_price')->default(0);
             $table->enum('status', ReservationStatus::cases())->default(ReservationStatus::PENDING->value);
             $table->timestamps();
         });

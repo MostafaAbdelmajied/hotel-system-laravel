@@ -8,6 +8,7 @@ use App\Http\Controllers\FloorController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\MyApprovedClientController;
 use App\Http\Controllers\MyReservationController;
+use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\PendingClientController;
 use App\Http\Controllers\ReceptionistClientReservationController;
 use App\Http\Controllers\ReceptionistController;
@@ -28,19 +29,15 @@ Route::middleware(['auth', 'approved', 'verified'])->group(function () {
     Route::get('bookings/available-rooms', [AvailableRoomController::class, 'index'])->name('bookings.available-rooms');
     Route::get('reservations/rooms/{room}', [ReservationController::class, 'show'])->name('reservations.rooms.show');
     Route::post('reservations/rooms/{room}/start-payment', [ReservationController::class, 'startPayment'])->name('reservations.rooms.start-payment');
-    Route::get('reservations/payment/success', [ReservationController::class, 'paymentSuccess'])->name('reservations.payment.success');
-    Route::get('reservations/payment/cancel', [ReservationController::class, 'paymentCancel'])->name('reservations.payment.cancel');
     Route::get('clients/pending', [PendingClientController::class, 'index'])->name('clients.pending');
     Route::get('clients/pending/export', [PendingClientController::class, 'export'])->name('clients.pending.export');
     Route::get('clients/my-approved', [MyApprovedClientController::class, 'index'])->name('clients.my-approved');
     Route::get('clients/my-approved/export', [MyApprovedClientController::class, 'export'])->name('clients.my-approved.export');
     Route::patch('clients/{client}/approve', [ClientApprovalController::class, 'update'])->name('clients.approve');
-    Route::get('reservations/my', [MyReservationController::class, 'index'])
-        ->middleware('role:Client')
-        ->name('reservations.my');
-    Route::get('reservations/clients', [ReceptionistClientReservationController::class, 'index'])
-        ->middleware('role:Receptionist')
-        ->name('reservations.clients');
+    Route::get('reservations/my', [MyReservationController::class, 'index'])->middleware('role:Client')->name('reservations.my');
+    Route::get('reservations/clients', [ReceptionistClientReservationController::class, 'index'])->middleware('role:Receptionist')->name('reservations.clients');
+    Route::get('payment/success', [PaymentController::class, 'success'])->name('payment.success');
+    Route::get('payment/{payment}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 });
 Route::middleware(['auth', 'approved', 'verified', 'role:Manager|Admin'])
     ->prefix('manager')

@@ -22,13 +22,14 @@ class MyReservationController extends Controller
                 'id',
                 'room_id',
                 'accompany_number',
-                'paid_price',
                 'check_in',
                 'check_out',
+                'total_price',
             ])
             ->whereBelongsTo($user)
             ->with([
                 'room:id,number',
+                'payments'
             ])
             ->orderByDesc('check_in')
             ->paginate(10)
@@ -37,7 +38,7 @@ class MyReservationController extends Controller
                 return [
                     'id' => $reservation->id,
                     'accompany_number' => $reservation->accompany_number,
-                    'paid_price_cents' => $reservation->paid_price,
+                    'paid_price_cents' => $reservation->total_price,
                     'check_in' => $reservation->check_in?->toDateString(),
                     'check_out' => $reservation->check_out?->toDateString(),
                     'room' => [
