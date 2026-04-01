@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ReservationStatus;
 use App\Policies\RoomPolicy;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
@@ -67,6 +68,11 @@ class Room extends Model
 
         return ! $this->reservations()
             ->overlapping($checkInDate, $checkOutDate)
+            ->where('status', ReservationStatus::CONFIRMED)
+            ->orWhere(function (Builder $query) use ($checkInDate, $checkOutDate) {
+                $query->where('status', ReservationStatus::PENDING)
+                    ->where('created_at', '>=', now()->subMinutes(30));
+            })
             ->exists();
     }
 

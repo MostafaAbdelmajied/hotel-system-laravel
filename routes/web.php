@@ -22,7 +22,7 @@ Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::post('stripe/webhook', [ReservationController::class, 'stripeWebhook'])->name('stripe.webhook');
+Route::post('stripe/webhook', [PaymentController::class, 'webhook'])->name('stripe.webhook');
 
 Route::middleware(['auth', 'approved', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
