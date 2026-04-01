@@ -31,7 +31,7 @@ class StatisticsController extends Controller
             ->groupBy('users.gender')
             ->get();
         $revenueData = Reservation::query()->whereYear('reservations.created_at', \Illuminate\Support\now()->year)
-            ->select(DB::raw('Month(created_at) as month'), DB::raw('SUM(paid_price) as total'))
+            ->select(DB::raw('Month(created_at) as month'), DB::raw('SUM(total_price) as total'))
             ->groupBy('month')->orderBy('month')
             ->get();
         $countryData = User::query()
