@@ -18,6 +18,7 @@ use App\Http\Controllers\StatisticsController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
+// dd($_SERVER);
 Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
